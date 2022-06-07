@@ -20,7 +20,7 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 </details>
 
 <div align="center">
-  <img width="100%" alt="HIPT Illustration" src=".github/HIPT_model.jpg">
+  <img width="100%" alt="HIPT Illustration" src=".github/HIPT Architecture.gif">
 </div>
 
 <details>
