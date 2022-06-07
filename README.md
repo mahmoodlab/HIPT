@@ -36,10 +36,11 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 
 ## Updates / TODOs
 Stay tuned for more updates :).
-- [ ] TODO: Add classification + survival training scaffold code.
+- [ ] 6/19/2022: Better documentation on interpretability code example.
+- [ ] 6/19/2022: Add classification + survival training scaffold code.
 - [x] Add pretrained models + instructions for hierarchical visualization.
 - [X] Add pre-extracted slide-level embeddings, and code for K-NN evaluation.
-- [X] Add results for Tensorboard.
+- [X] Add weakly-supervised results for Tensorboard.
 
 ## Pre-Reqs
 We use [Git LFS](https://git-lfs.github.com) to version-control large files in this repository (e.g. - images, embeddings, checkpoints). After installing, to pull these large files, please run:
