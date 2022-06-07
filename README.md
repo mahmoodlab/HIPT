@@ -257,8 +257,8 @@ python -m torch.distributed.launch --nproc_per_node=8 main_dino4k.py --arch vit_
     <td>400,000</td>
     <td>256</td>
     <td>ViT-S/16</td>
-    <td>16</td>
     <td>256</td>
+    <td>16</td>
     <td>384</td>
     <td><a href="https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/Checkpoints/vit256_small_dino.pth">Backbone</a></td>
   </tr>
@@ -269,8 +269,8 @@ python -m torch.distributed.launch --nproc_per_node=8 main_dino4k.py --arch vit_
     <td>200,000</td>
     <td>256</td>
     <td>ViT-XS/256</td>
-    <td>256</td>
     <td>4096</td>
+    <td>256</td>
     <td>192</td>
     <td><a href="https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/Checkpoints/vit4k_xs_dino.pth">Backbone</a></td>
   </tr>
