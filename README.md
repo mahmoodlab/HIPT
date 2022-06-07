@@ -2,8 +2,11 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 ===========
 <details>
 <summary>
-  <b>Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning</b>, CVPR 2022. [HTML][arXiv]
-  <br><em>Richard. J. Chen, Chengkuan Chen, Yicong Li, Tiffany Y. Chen, Andrew Trister, Rahul G. Krishnan*, Faisal Mahmood*</em></br>
+  <b>Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning</b>, CVPR 2022.
+  <a href="https://openaccess.thecvf.com/content/CVPR2022/html/Chen_Scaling_Vision_Transformers_to_Gigapixel_Images_via_Hierarchical_Self-Supervised_Learning_CVPR_2022_paper.html" target="blank">[HTML]</a>
+  <a href="https://arxiv.org/abs/2206.02647" target="blank">[arXiv]</a>
+  <a href="https://www.youtube.com/watch?v=KHv7ccs9FAI" target="blank">[Oral]</a>
+  <br><em>Richard. J. Chen, Chengkuan Chen, Yicong Li, Tiffany Y. Chen, Andreaw Trister, Rahul G. Krishnan*, Faisal Mahmood*</em></br>
 </summary>
 
 ```bash
@@ -25,7 +28,6 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 2. **Learning Context-Aware Token Dependencies in WSIs:** Note that Transformer attention is computed only in local windows (instead of across the entire WSI), which makes learning long-range dependencies tractable. Though representation learning for ```[4096 × 4096]``` image regions may seem expensive, also note that the patch size at this level is ```[256 × 256]```, and thus has similar complexity of applying ViTs to ```[256 × 256]``` image patches with ```[16 × 16]``` tokens.
 3. **Hierarchical Pretraining:** Since encoding ```[4096 x 4096]``` images is the same subproblem as encoding ```[256 x 256]``` images, we hypothesize that ViT pretraining techniques can generalize to higher resolutions with little modification. DINO is used to not only pretrain ViT-16 in HIPT, but also ViT-256 via [6 x 6] local and [14 x 14] global crops on a 2D grid-of-features (obtained by using VIT-16 as a patch tokenizer for ViT-256).
 4. **Self-Supervised Slide-Level Representation Learning:** HIPT is evaluated via pretraining + freezing the ViT-16 / ViT-256 stages, with the ViT-4K stage finetuned with slide-level labels, assessed on cancer subtyping and survival prediction tasks in TCGA. We also perform self-supervised KNN evaluation of HIPT embeddings via computing the mean [CLS]-4K tokens extracted from ViT-256, as a proxy for the slide-level embedding. On Renal Cell Carcinoma subtyping, we report that averaged, pretrained HIPT-4K embeddings without any labels perform as well as CLAM-SB.
-5. **Hierarchical Attention Heatmaps:** TODO
 
 ## Updates / TODOs
 Stay tuned for more updates :).
