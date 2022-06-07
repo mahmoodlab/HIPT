@@ -41,7 +41,7 @@ We use [Git LFS](https://git-lfs.github.com) to version-control large files in t
 git lfs pull
 ```
 
-## HIPT_4K Architecture, Model Inference, & Hierarchical Interpretability
+## HIPT_4K Model Walkthrough & Hierarchical Interpretability
 Standalone HIPT model architecture that can load fully self-supervised weights for nested [16 x 16] and [256 x 256] token aggregation. HIPT_4K was used for feature extraction of non-overlapping [4096 x 4096] image regions across the TCGA.
 
 ```python
