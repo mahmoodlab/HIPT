@@ -41,6 +41,64 @@ We use [Git LFS](https://git-lfs.github.com) to version-control large files in t
 git lfs pull
 ```
 
+## HIPT_4K Architecture, Model Inference, & Hierarchical Interpretability
+Standalone HIPT model architecture that can load fully self-supervised weights for nested [16 x 16] and [256 x 256] token aggregation. HIPT_4K was used for feature extraction of non-overlapping [4096 x 4096] image regions across the TCGA.
+
+```python
+import torch
+from einops import rearrange, repeat
+from HIPT_4K.utils import get_vit256, get_vit4k
+
+class HIPT_4K(torch.nn.Module):
+    """
+    HIPT Model (ViT_4K-256) for encoding non-square images (with [256 x 256] patch tokens), with 
+    [256 x 256] patch tokens encoded via ViT_256-16 using [16 x 16] patch tokens.
+    """
+    def __init__(self, 
+        model256_path: str = 'path/to/Checkpoints/vit256_small_dino.pth',
+        model4k_path: str = 'path/to/Checkpoints/vit4k_xs_dino.pth', 
+        device256=torch.device('cuda:0'), 
+        device4k=torch.device('cuda:1')):
+
+        super().__init__()
+        self.model256 = get_vit256(pretrained_weights=model256_path).to(device256)
+        self.model4k = get_vit4k(pretrained_weights=model4k_path).to(device4k)
+        self.device256 = device256
+        self.device4k = device4k
+        self.patch_filter_params = patch_filter_params
+	
+    def forward(self, x):
+        """
+        Forward pass of HIPT (given an image tensor x), outputting the [CLS] token from ViT-4K.
+        1. x is center-cropped such that the W / H is divisible by the patch token size in ViT-4K (e.g. - 256 x 256).
+        2. x then gets unfolded into a "batch" of [256 x 256] images.
+        3. A pretrained ViT_256-16 model extracts the CLS token from each [256 x 256] image in the batch.
+        4. These batch-of-features are then reshaped into a 2D feature grid (of width "w_256" and height "h_256".)
+        5. This feature grid is then used as the input to ViT_4K-256, outputting [CLS]_4K.
+
+        Args:
+          - x (torch.Tensor): [1 x C x W' x H'] image tensor.
+
+        Return:
+          - features_cls4k (torch.Tensor): [1 x 192] cls token (d_4k = 192 by default).
+        """
+        batch_256, w_256, h_256 = self.prepare_img_tensor(x)                    # 1. [1 x 3 x W x H] 
+        batch_256 = batch_256.unfold(2, 256, 256).unfold(3, 256, 256)           # 2. [1 x 3 x w_256 x h_256 x 256 x 256] 
+        batch_256 = rearrange(batch_256, 'b c p1 p2 w h -> (b p1 p2) c w h')    # 2. [B x 3 x 256 x 256], where B = (1*w_256*h_256)
+
+
+        features_cls256 = []
+        for mini_bs in range(0, batch_256.shape[0], 256):                       # 3. B may be too large for ViT-256. We further take minibatches of 256.
+            minibatch_256 = batch_256[mini_bs:mini_bs+256].to(self.device256, non_blocking=True)
+            features_cls256.append(self.model256(minibatch_256).detach().cpu()) # 3. Extracting ViT-256 features from [256 x 3 x 256 x 256] image batches.
+
+        features_cls256 = torch.vstack(features_cls256)                         # 3. [B x 384], where 384 == dim of ViT-256 [ClS] token.
+        features_cls256 = features_cls256.reshape(w_256, h_256, 384).transpose(0,1).transpose(0,2).unsqueeze(dim=0) 
+        features_cls256 = features_cls256.to(self.device4k, non_blocking=True)  # 4. [1 x 384 x w_256 x h_256]
+        features_cls4k = self.model4k.forward(features_cls256)                  # 5. [1 x 192], where 192 == dim of ViT-4K [ClS] token.
+        return features_cls4k
+```
+
 ## Downloading + Preprocessing + Organizing TCGA Data
 Using the [NIH Genomic Data Commons Data Portal](https://portal.gdc.cancer.gov/) and the [cBioPortal](https://www.cbioportal.org/), we downloaded diagnostic whole-slide images (WSIs) for 28 cancer types using the [GDC Data Transfer Tool](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Data_Download_and_Upload/), followed by using the publicly-available [CLAM library](https://github.com/mahmoodlab/CLAM) for tissue segmentation, tissue patching and feature extraction, which we modified for extracting both ResNet-50 features (pretrained on ImageNet) and ViT-16 features (pretrained on the TCGA). For patching at `[256 × 256]` resolution, we used default tissue segmentation parameters. For patching at `[4096 × 4096]` resolution, we additionally saved each `[4096 × 4096]` image region, which we used for ViT-16/256 pretraining (`-16` suffix == using [16 × 16]-sized tokens in a ViT model, `-256` suffix == using [256 × 256]-sized tokens in a ViT model). Extracted TCGA features are organized in the following example directory:
 <details>
