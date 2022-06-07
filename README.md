@@ -31,9 +31,10 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 
 ## Updates / TODOs
 Stay tuned for more updates :).
-- [x] TODO: Add pretrained models + instructions for hierarchical visualization.
-- [X] TODO: Add pre-extracted slide-level embeddings, and code for K-NN evaluation.
-- [X] TODO: Add results for Tensorboard.
+- [ ] TODO: Add classification + survival training scaffold code.
+- [x] Add pretrained models + instructions for hierarchical visualization.
+- [X] Add pre-extracted slide-level embeddings, and code for K-NN evaluation.
+- [X] Add results for Tensorboard.
 
 ## Pre-Reqs
 We use [Git LFS](https://git-lfs.github.com) to version-control large files in this repository (e.g. - images, embeddings, checkpoints). After installing, to pull these large files, please run:
@@ -170,7 +171,7 @@ TCGA_ROOT_DIR/
 </details>
 
 Each cancer type is organized as its own folder in `TCGA_ROOT_DIR`, which additionally contains the following subfolders:
-In extracting patches at level 0 with non-overlapping patch sizes of 256, we create a results directory called `extracted_level0_patch256` that will contain the following files / folders:
+In extracting patches at 20X magnification with non-overlapping patch sizes of 256, we create a results directory called `extracted_mag20x_patch256_fp` that will contain the following files / folders:
 <details>
   <summary>
     Folder Structure
@@ -191,7 +192,6 @@ In extracting patches at level 0 with non-overlapping patch sizes of 256, we cre
     - `tar_patch_4096/`: Directory of saved `[4096 × 4096]` image regions for each WSI, stored in a `*.tar` format using [WebDataset](https://github.com/webdataset/webdataset) API.
     - `vits_tcga_pancancer_dino_pt_patch_features/`: Directory of pre-extracted ViT-16 features (pretrained on TCGA) for each `[4096 × 4096]` region within each WSI (with regions read via OpenSlide using coordinates in `patches/`, saved in a `*.pt` format. Each `*.pt` file is a `[M × 256 × 384]`-sized Tensor containing extracted 384-dim embeddings for `M` regions in the WSI, which each region represented as as a 256-length sequence of `[256 × 256]` patch embeddings.
     - `process_list_autogen.csv`: An auto-generated csv file that contains a list of all slides processed, along with their segmentation/patching parameters used. Note that in using a large image resolution for patching, not all WSIs are used in `[4096 × 4096]` evaluation.
-
 </details>
  
 ## Hierarchical Pretraining for ViT-16/256 Models
