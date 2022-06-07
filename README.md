@@ -23,11 +23,16 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
   <img width="100%" alt="HIPT Illustration" src=".github/HIPT_model.jpg">
 </div>
 
-**Key Ideas & Main Findings:**
+<details>
+  <summary>
+	  <b>Key Ideas & Main Findings</b>
+  </summary>
+
 1. **Hierarchical Image Pyramid Transformer (HIPT) Architecture:** Three-stage hierarchical ViT that formulates gigapixel whole-slide images (WSIs) as a disjoint set of nested sequences. HIPT unroll the WSI into non-overlapping ```[4096 × 4096]``` image regions, followed by unrolling each region into non-overlapping ```[256 × 256]``` image patches, and lastly each patch as non-overlapping ```[16 × 16]``` cell tokens. Our method is analgous to that of hierarchical attention networks in long document modeling, in which word embeddings within sentences are aggregated to form sentence-level embeddings and subsequently aggregated into document-level embeddings. Inference in HIPT is performed via bottom-up aggregation of ```[16 × 16]``` visual tokens in their respective ```[256 × 256]``` and ```[4096 × 4096]``` windows via Transformer attention to compute a slide-level representation.
 2. **Learning Context-Aware Token Dependencies in WSIs:** Note that Transformer attention is computed only in local windows (instead of across the entire WSI), which makes learning long-range dependencies tractable. Though representation learning for ```[4096 × 4096]``` image regions may seem expensive, also note that the patch size at this level is ```[256 × 256]```, and thus has similar complexity of applying ViTs to ```[256 × 256]``` image patches with ```[16 × 16]``` tokens.
 3. **Hierarchical Pretraining:** Since encoding ```[4096 x 4096]``` images is the same subproblem as encoding ```[256 x 256]``` images, we hypothesize that ViT pretraining techniques can generalize to higher resolutions with little modification. DINO is used to not only pretrain ViT-16 in HIPT, but also ViT-256 via [6 x 6] local and [14 x 14] global crops on a 2D grid-of-features (obtained by using VIT-16 as a patch tokenizer for ViT-256).
 4. **Self-Supervised Slide-Level Representation Learning:** HIPT is evaluated via pretraining + freezing the ViT-16 / ViT-256 stages, with the ViT-4K stage finetuned with slide-level labels, assessed on cancer subtyping and survival prediction tasks in TCGA. We also perform self-supervised KNN evaluation of HIPT embeddings via computing the mean [CLS]-4K tokens extracted from ViT-256, as a proxy for the slide-level embedding. On Renal Cell Carcinoma subtyping, we report that averaged, pretrained HIPT-4K embeddings without any labels perform as well as CLAM-SB.
+</details>
 
 ## Updates / TODOs
 Stay tuned for more updates :).
@@ -101,7 +106,7 @@ class HIPT_4K(torch.nn.Module):
 ```
 
 ## Downloading + Preprocessing + Organizing TCGA Data
-Using the [NIH Genomic Data Commons Data Portal](https://portal.gdc.cancer.gov/) and the [cBioPortal](https://www.cbioportal.org/), we downloaded diagnostic whole-slide images (WSIs) for 28 cancer types using the [GDC Data Transfer Tool](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Data_Download_and_Upload/), followed by using the publicly-available [CLAM library](https://github.com/mahmoodlab/CLAM) for tissue segmentation, tissue patching and feature extraction, which we modified for extracting both ResNet-50 features (pretrained on ImageNet) and ViT-16 features (pretrained on the TCGA). For patching at `[256 × 256]` resolution, we used default tissue segmentation parameters. For patching at `[4096 × 4096]` resolution, we additionally saved each `[4096 × 4096]` image region, which we used for ViT-16/256 pretraining (`-16` suffix == using [16 × 16]-sized tokens in a ViT model, `-256` suffix == using [256 × 256]-sized tokens in a ViT model). Extracted TCGA features are organized in the following example directory:
+Using the [NIH Genomic Data Commons Data Portal](https://portal.gdc.cancer.gov/) and the [cBioPortal](https://www.cbioportal.org/), we downloaded diagnostic whole-slide images (WSIs) for 28 cancer types using the [GDC Data Transfer Tool](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Data_Download_and_Upload/), followed by using the publicly-available [CLAM library](https://github.com/mahmoodlab/CLAM) for tissue segmentation, tissue patching and feature extraction, which we modified for extracting both ResNet-50 features (pretrained on ImageNet) and ViT-16 features (pretrained on the TCGA). For patching at `[256 × 256]` resolution, we used default tissue segmentation parameters. For patching at `[4096 × 4096]` resolution, we additionally saved each `[4096 × 4096]` image region, which we used for ViT_256-16 and ViT_4096-256 pretraining (`-16` suffix == using [16 × 16]-sized tokens in a ViT model, `-256` suffix == using [256 × 256]-sized tokens in a ViT model). Extracted TCGA features are organized in the following example directory:
 <details>
 <summary>
 Example Directory
@@ -194,7 +199,7 @@ In extracting patches at 20X magnification with non-overlapping patch sizes of 2
     - `process_list_autogen.csv`: An auto-generated csv file that contains a list of all slides processed, along with their segmentation/patching parameters used. Note that in using a large image resolution for patching, not all WSIs are used in `[4096 × 4096]` evaluation.
 </details>
  
-## Hierarchical Pretraining for ViT-16/256 Models
+## Hierarchical Pretraining for ViT-16/256 Models + Pretrained Models
 <details>
 <summary>
 Example Directory
@@ -217,15 +222,59 @@ TCGA_PRETRAINING_DIR/
  ```
  </details>
  
- We set up the following directories for ViT-16 and ViT-256 pretraining respectively:
-  - `patch_256_pretraining/`: Directory of raw `[256 × 256]` patches (as `*.png` format) extracted from the `tar_patch_4096/` subdirectories of each cancer type, used to pretrain ViT-16.
-  - `region_4096_pretraining/`: Directory of pre-extracted ViT-16 features for each `[4096 × 4096]` region across all WSIs (in total: 433779 regions). Each `*.pt` file is a `[256 × 384]`-sized Tensor, which is a 256-length sequence of pre-extracted ViT-16 features for each `[256 × 256]` patch. This folder is used to pretain ViT-256.
-  - `ckpts/pretrain/`: Directory for holding the pretrained weights, which we use for feature extraction. Our pretraining method largely follows the original [DINO](https://github.com/facebookresearch) framework for conventional `[256 × 256]` image pretraining using ViT-16, which we extend to the `[4096 × 4096]` setting. Again, note that the `-16` suffix refers to using [16 × 16]-sized tokens in a ViT model, and the `-256` suffix using [256 × 256]-sized tokens in a ViT model. The following commands below are used for pretraining.
+ We set up the following directories for ViT_256-16 and ViT_4K-256 pretraining respectively:
+  - `.../path/to/patch_256_pretraining/`: Directory of raw `[256 × 256]` patches (as `*.png` format) extracted from the `tar_patch_4096/` subdirectories of each cancer type, used to pretrain ViT_256-16.
+  - `.../path/to/region_4096_pretraining/`: Directory of pre-extracted ViT_4K-256 features for each `[4096 × 4096]` region across all WSIs (in total: 433779 regions). Each `*.pt` file is a `[256 × 384]`-sized Tensor, which is a 256-length sequence of pre-extracted ViT_256-16 features for each `[256 × 256]` patch. This folder is used to pretain ViT_4K-256.
+  - `./HIPT_4K/Checkpoints/`: Directory for holding the pretrained weights, which we use for feature extraction. Our pretraining method largely follows the original [DINO](https://github.com/facebookresearch) framework for conventional `[256 × 256]` image pretraining using ViT_256-16, which we extend to the `[4096 × 4096]` setting. Again, note that the `-16` suffix refers to using [16 × 16]-sized tokens in a ViT model, and the `-256` suffix using [256 × 256]-sized tokens in a ViT model. The following commands below are used for pretraining.
 
 ```python
 python -m torch.distributed.launch --nproc_per_node=8 main_dino256.py --arch vit_small --data_path /path/to/TCGA_PRETRAINING_DIR/patch_256_pretraining/ --output_dir /path/to/TCGA_PRETRAINING_DIR/ckpts/pretrain/ --epochs 100
 python -m torch.distributed.launch --nproc_per_node=8 main_dino4k.py --arch vit_xs --data_path /path/to/TCGA_PRETRAINING_DIR/region_4k_pretraining/ --output_dir /path/to/TCGA_PRETRAINING_DIR/ckpts/pretrain/ --epochs 100
 ```
+
+
+<table>
+  <tr>
+    <th>SSL Strategy</th>
+    <th>ViT SSL</th>
+    <th>Dataset</th>
+    <th>Iteration</th>
+    <th>Batch Size</th>
+    <th>Arch</th>
+    <th>Image Size</th>
+    <th>Token Size</th>
+    <th>Dim</th>
+    <th>Download</th>
+  </tr>
+  
+  <tr>
+    <td rowspan="2">Hierarchical Pretraining</td>
+    <td><a href="https://github.com/facebookresearch/dino">DINO</a></td>
+    <td>TCGA</td>
+    <td>400,000</td>
+    <td>256</td>
+    <td>ViT-S/16</td>
+    <td>16</td>
+    <td>256</td>
+    <td>384</td>
+    <td><a href="https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/Checkpoints/vit256_small_dino.pth">Backbone</a></td>
+  </tr>
+	
+  <tr>
+    <td><a href="https://github.com/facebookresearch/dino">DINO</a></td>
+    <td>TCGA</td>
+    <td>200,000</td>
+    <td>256</td>
+    <td>ViT-XS/256</td>
+    <td>256</td>
+    <td>4096</td>
+    <td>192</td>
+    <td><a href="https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/Checkpoints/vit4k_xs_dino.pth">Backbone</a></td>
+  </tr>
+</table>
+
+
+
 
 ## Weakly-Supervised Training + Evaluation
 Following ViT-16/256 pretraining and pre-extracting instance-level `[256 × 256]` features using ViT-16, we extend the publicly-available CLAM scaffold code for running 10-fold cross-validation experiments as well as implement several of the current weakly-supervised baselines. Our main method is `hipt_lgp` (abbreviated for HIPT with Local-Global Pretraining). We make available our [saved results directory](https://github.com/707884/707884/tree/master/2-Weakly-Supervised-Train-Val/splits/10foldcv_subtype), [evaluation code](https://github.com/707884/707884/blob/master/2-Weakly-Supervised-Train-Val/Evaluation-Classification.ipynb), and a [Jupyter Notebook](https://github.com/707884/707884/blob/master/2-Weakly-Supervised-Train-Val/Model%20Walkthrough.ipynb) containing a walkthrough of our method.
