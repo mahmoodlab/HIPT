@@ -70,8 +70,8 @@ class HIPT_4K(torch.nn.Module):
 	
     def forward(self, x):
         """
-        Forward pass of HIPT (given an image tensor x), outputting the [CLS] token from ViT-4K.
-        1. x is center-cropped such that the W / H is divisible by the patch token size in ViT-4K (e.g. - 256 x 256).
+        Forward pass of HIPT (given an image tensor x), outputting the [CLS] token from ViT_4K.
+        1. x is center-cropped such that the W / H is divisible by the patch token size in ViT_4K (e.g. - 256 x 256).
         2. x then gets unfolded into a "batch" of [256 x 256] images.
         3. A pretrained ViT_256-16 model extracts the CLS token from each [256 x 256] image in the batch.
         4. These batch-of-features are then reshaped into a 2D feature grid (of width "w_256" and height "h_256".)
@@ -89,14 +89,14 @@ class HIPT_4K(torch.nn.Module):
 
 
         features_cls256 = []
-        for mini_bs in range(0, batch_256.shape[0], 256):                       # 3. B may be too large for ViT-256. We further take minibatches of 256.
+        for mini_bs in range(0, batch_256.shape[0], 256):                       # 3. B may be too large for ViT_256. We further take minibatches of 256.
             minibatch_256 = batch_256[mini_bs:mini_bs+256].to(self.device256, non_blocking=True)
-            features_cls256.append(self.model256(minibatch_256).detach().cpu()) # 3. Extracting ViT-256 features from [256 x 3 x 256 x 256] image batches.
+            features_cls256.append(self.model256(minibatch_256).detach().cpu()) # 3. Extracting ViT_256 features from [256 x 3 x 256 x 256] image batches.
 
         features_cls256 = torch.vstack(features_cls256)                         # 3. [B x 384], where 384 == dim of ViT-256 [ClS] token.
         features_cls256 = features_cls256.reshape(w_256, h_256, 384).transpose(0,1).transpose(0,2).unsqueeze(dim=0) 
         features_cls256 = features_cls256.to(self.device4k, non_blocking=True)  # 4. [1 x 384 x w_256 x h_256]
-        features_cls4k = self.model4k.forward(features_cls256)                  # 5. [1 x 192], where 192 == dim of ViT-4K [ClS] token.
+        features_cls4k = self.model4k.forward(features_cls256)                  # 5. [1 x 192], where 192 == dim of ViT_4K [ClS] token.
         return features_cls4k
 ```
 
