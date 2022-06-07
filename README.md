@@ -36,7 +36,7 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 </details>
 
 ## Updates / TODOs
-Please follow this GitHub for more updates. Documentation, additional scripts, and code for reproducing any analyses will be made fully available at the time of the workshop.
+Please follow this GitHub for more updates. Documentation, additional scripts, and code for reproducing any analyses will be made fully available at the time of the conference.
 - [ ] 6/19/2022: Script for extracting HIPT features from WSIs.
 - [ ] 6/19/2022: Better documentation on interpretability code example.
 - [ ] 6/19/2022: Add classification + survival training scaffold code.
