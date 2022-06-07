@@ -337,7 +337,7 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --which_split
 - Immediate response to minor issues may not be available.
 
 ## Acknowledgements, License & Usage 
-- We thank Felix Yu, Max Lu, Chunyuan Li, and the BioML group at Microsoft Research New England for their insightful feedback.
+- We thank Felix Yu, Ming Y. Lu, Chunyuan Li, and the BioML group at Microsoft Research New England for their insightful feedback.
 - Code for Weakly-Supervised Subtyping + Survival Classification was largely adapted from [CLAM](https://github.com/mahmoodlab/CLAM) and [MCAT](https://github.com/mahmoodlab/MCAT)
 - Code for Hierarchical Pretraining was largely adapted via making modifications to [DINO](https://github.com/facebookresearch/dino) 
 - If you found our work useful in your research, please consider citing our works(s) at:
