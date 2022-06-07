@@ -21,14 +21,17 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 </div>
 
 **Key Ideas & Main Findings:**
-1. We present **Hierarchical Image Pyramid Transformer (HIPT)**, a three-stage hierarchical ViT architecture that formulates gigapixel whole-slide images (WSIs) as a disjoint set of nested sequences. HIPT unroll the WSI into non-overlapping ```[4096 × 4096]``` image regions, followed by unrolling each region into non-overlapping ```[256 × 256]``` image patches, and lastly each patch as non-overlapping ```[16 × 16]``` cell tokens. Our method is analgous to that of hierarchical attention networks in long document modeling, in which word embeddings within sentences are aggregated to form sentence-level embeddings and subsequently aggregated into document-level embeddings. Inference in HIPT is performed via bottom-up aggregation of ```[16 × 16]``` visual tokens in their respective ```[256 × 256]``` and ```[4096 × 4096]``` windows via Transformer attention to compute a slide-level representation.
-2. Note that Transformer attention is computed only in local windows (instead of across the entire WSI), which makes learning long-range dependencies tractable. Though representation learning for ```[4096 × 4096]``` image regions may seem expensive, also note that the patch size at this level is ```[256 × 256]```, and thus has similar complexity of applying ViTs to ```[256 × 256]``` image patches with ```[16 × 16]``` tokens.
-
+1. **Hierarchical Image Pyramid Transformer (HIPT) Architecture:** Three-stage hierarchical ViT that formulates gigapixel whole-slide images (WSIs) as a disjoint set of nested sequences. HIPT unroll the WSI into non-overlapping ```[4096 × 4096]``` image regions, followed by unrolling each region into non-overlapping ```[256 × 256]``` image patches, and lastly each patch as non-overlapping ```[16 × 16]``` cell tokens. Our method is analgous to that of hierarchical attention networks in long document modeling, in which word embeddings within sentences are aggregated to form sentence-level embeddings and subsequently aggregated into document-level embeddings. Inference in HIPT is performed via bottom-up aggregation of ```[16 × 16]``` visual tokens in their respective ```[256 × 256]``` and ```[4096 × 4096]``` windows via Transformer attention to compute a slide-level representation.
+2. **Learning Context-Aware Token Dependencies in WSIs:** Note that Transformer attention is computed only in local windows (instead of across the entire WSI), which makes learning long-range dependencies tractable. Though representation learning for ```[4096 × 4096]``` image regions may seem expensive, also note that the patch size at this level is ```[256 × 256]```, and thus has similar complexity of applying ViTs to ```[256 × 256]``` image patches with ```[16 × 16]``` tokens.
+3. **Hierarchical Pretraining:** Since encoding ```[4096 x 4096]``` images is the same subproblem as encoding ```[256 x 256]``` images, we hypothesize that ViT pretraining techniques can generalize to higher resolutions with little modification. DINO is used to not only pretrain ViT-16 in HIPT, but also ViT-256 via [6 x 6] local and [14 x 14] global crops on a 2D grid-of-features (obtained by using VIT-16 as a patch tokenizer for ViT-256).
+4. **Self-Supervised Slide-Level Representation Learning:** HIPT is evaluated via pretraining + freezing the ViT-16 / ViT-256 stages, with the ViT-4K stage finetuned with slide-level labels, assessed on cancer subtyping and survival prediction tasks in TCGA. We also perform self-supervised KNN evaluation of HIPT embeddings via computing the mean [CLS]-4K tokens extracted from ViT-256, as a proxy for the slide-level embedding. On Renal Cell Carcinoma subtyping, we report that averaged, pretrained HIPT-4K embeddings without any labels perform as well as CLAM-SB.
+5. **Hierarchical Attention Heatmaps:** TODO
 
 ## Updates / TODOs
 Stay tuned for more updates :).
-- [ ]
-- [X] TODO: Add pretrained models + instructions for hierarchical visualization.
+- [ ] XX/YY/2022: Reproducible and largely-working codebase that I'm satisfied with and have heavily tested.
+- [x] TODO: Add pretrained models + instructions for hierarchical visualization.
+- [ ] TODO: Clean Classification + Survival repositories.
 - [X] TODO: Add pre-extracted slide-level embeddings, and code for K-NN evaluation.
 - [X] TODO: Add results for Tensorboard.
 
