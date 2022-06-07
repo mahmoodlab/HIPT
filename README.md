@@ -288,9 +288,16 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --which_split
 - We thank Felix Yu, Max Lu, Chunyuan Li, and the BioML group at Microsoft Research New England for their insightful feedback.
 - Code for Weakly-Supervised Subtyping + Survival Classification was largely adapted from [CLAM](https://github.com/mahmoodlab/CLAM) and [MCAT](https://github.com/mahmoodlab/MCAT)
 - Code for Hierarchical Pretraining was largely adapted via making modifications to [DINO](https://github.com/facebookresearch/dino) 
-- If you found our work useful in your research, please consider citing our paper at:
+- If you found our work useful in your research, please consider citing our works(s) at:
 
 ```bash
+@article{chen2022self,
+  title={Self-Supervised Vision Transformers Learn Visual Concepts in Histopathology},
+  author={Chen, Richard J and Krishnan, Rahul G},
+  journal={Learning Meaningful Representations of Life, NeurIPS 2021},
+  year={2021}
+}
+
 @inproceedings{chen2022scaling,
   title={Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning},
   author={Chen, Richard J and Chen, Chengkuan and Li, Yicong and Chen, Tiffany Y and Trister, Andrew D and Krishnan, Rahul G and Mahmood, Faisal},
