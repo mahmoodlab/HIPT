@@ -27,9 +27,8 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 
 ## Updates / TODOs
 Stay tuned for more updates :).
-- [ ] XX/YY/2022: Reproducible and largely-working codebase that I'm satisfied with and have heavily tested.
-- [ ] TODO: Add pretrained models + instructions for hierarchical visualization.
-- [ ] TODO: Clean Classification + Survival repositories.
+- [ ]
+- [X] TODO: Add pretrained models + instructions for hierarchical visualization.
 - [X] TODO: Add pre-extracted slide-level embeddings, and code for K-NN evaluation.
 - [X] TODO: Add results for Tensorboard.
 
