@@ -339,8 +339,7 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --which_split
 </details>
 
 ## Issues
-- Please open new threads or report issues directly (for urgent blockers) to richardchen@g.harvard.edu.
-- Immediate response to minor issues may not be available.
+- Please open new threads or report issues directly to richardchen@g.harvard.edu.
 
 ## Acknowledgements, License & Usage 
 - We thank Felix Yu, Ming Y. Lu, Chunyuan Li, and the BioML group at Microsoft Research New England for their insightful feedback.
