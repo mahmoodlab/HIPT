@@ -45,13 +45,17 @@ Please follow this GitHub for more updates. Documentation, additional scripts, a
 - [X] Add weakly-supervised results for Tensorboard.
 
 ## Pre-Reqs + Installation
-This repository includes not only the code base for HIPT, but also saved HIPT checkpoints and pre-extracted HIPT slide embeddings with ~4.08 GiB of storage.
+This repository includes not only the code base for HIPT, but also saved HIPT checkpoints and pre-extracted HIPT slide embeddings with ~4.08 GiB of storage, which we version control via [Git LFS](https://git-lfs.github.com/).
 
-To clone this repository without large files:
+To clone this repository without large files initially:
 ```bash
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/mahmoodlab/HIPT.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/mahmoodlab/HIPT.git 	# Pulls just the codebase
+git lfs pull --include "*.pth"						# Pulls the pretrained checkpoints
+git lfs pull --include "*.pt"						# Pulls pre-extracted slide embeddings
+git lfs pull --include "*.pkl"						# Pulls pre-extracted patch embeddings
+git lfs pull --include "*.png"						# Pulls demo images (required for 4K x 4K visualization)
 ```
-Else:
+To clone all files:
 ```bash
 git clone https://github.com/mahmoodlab/HIPT.git
 ```
