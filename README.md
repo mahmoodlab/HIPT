@@ -48,9 +48,13 @@ Please follow this GitHub for more updates. Documentation, additional scripts, a
 This repository includes not only the code base for HIPT, but also saved HIPT checkpoints and pre-extracted HIPT slide embeddings with ~4.08 GiB of storage.
 
 To clone this repository without large files:
+```bash
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/mahmoodlab/HIPT.git
+```
 Else:
+```bash
 git clone https://github.com/mahmoodlab/HIPT.git
+```
 
 ## Two-Stage HIPT Model Walkthrough & Hierarchical Interpretability
 Standalone HIPT model architecture that can load fully self-supervised weights for nested [16 x 16] and [256 x 256] token aggregation. HIPT_4K was used for feature extraction of non-overlapping [4096 x 4096] image regions across the TCGA.
@@ -335,8 +339,7 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --which_split
 </details>
 
 ## Issues
-- Please open new threads or report issues directly (for urgent blockers) to richardchen@g.harvard.edu.
-- Immediate response to minor issues may not be available.
+- Please open new threads or report issues directly to richardchen@g.harvard.edu.
 
 ## Acknowledgements, License & Usage 
 - We thank Felix Yu, Ming Y. Lu, Chunyuan Li, and the BioML group at Microsoft Research New England for their insightful feedback.
