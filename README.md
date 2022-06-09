@@ -44,11 +44,13 @@ Please follow this GitHub for more updates. Documentation, additional scripts, a
 - [X] Add pre-extracted slide-level embeddings, and code for K-NN evaluation.
 - [X] Add weakly-supervised results for Tensorboard.
 
-## Pre-Reqs
-We use [Git LFS](https://git-lfs.github.com) to version-control large files in this repository (e.g. - images, embeddings, checkpoints). After installing, to pull these large files, please run:
-```bash
-git lfs pull
-```
+## Pre-Reqs + Installation
+This repository includes not only the code base for HIPT, but also saved HIPT checkpoints and pre-extracted HIPT slide embeddings with ~4.08 GiB of storage.
+
+To clone this repository without large files:
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/mahmoodlab/HIPT.git
+Else:
+git clone https://github.com/mahmoodlab/HIPT.git
 
 ## Two-Stage HIPT Model Walkthrough & Hierarchical Interpretability
 Standalone HIPT model architecture that can load fully self-supervised weights for nested [16 x 16] and [256 x 256] token aggregation. HIPT_4K was used for feature extraction of non-overlapping [4096 x 4096] image regions across the TCGA.
