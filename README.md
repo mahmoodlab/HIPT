@@ -11,11 +11,12 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 
 ```bash
 @inproceedings{chen2022scaling,
-  title={Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning},
-  author={Chen, Richard J and Chen, Chengkuan and Li, Yicong and Chen, Tiffany Y and Trister, Andrew D and Krishnan, Rahul G and Mahmood, Faisal},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  year={2022},
-  pages={16144--16155}
+    author    = {Chen, Richard J. and Chen, Chengkuan and Li, Yicong and Chen, Tiffany Y. and Trister, Andrew D. and Krishnan, Rahul G. and Mahmood, Faisal},
+    title     = {Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2022},
+    pages     = {16144-16155}
 }
 ```
 </details>
@@ -354,18 +355,19 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --which_split
 
 ```bash
 @article{chen2022self,
-  title={Self-Supervised Vision Transformers Learn Visual Concepts in Histopathology},
-  author={Chen, Richard J and Krishnan, Rahul G},
-  journal={Learning Meaningful Representations of Life, NeurIPS 2021},
-  year={2021},
+    author    = {Chen, Richard J and Krishnan, Rahul G},
+    title     = {Self-Supervised Vision Transformers Learn Visual Concepts in Histopathology},
+    journal   = {Learning Meaningful Representations of Life, NeurIPS 2021},
+    year      = {2021},
 }
 
 @inproceedings{chen2022scaling,
-  title={Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning},
-  author={Chen, Richard J and Chen, Chengkuan and Li, Yicong and Chen, Tiffany Y and Trister, Andrew D and Krishnan, Rahul G and Mahmood, Faisal},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  year={2022},
-  pages={16144--16155}
+    author    = {Chen, Richard J. and Chen, Chengkuan and Li, Yicong and Chen, Tiffany Y. and Trister, Andrew D. and Krishnan, Rahul G. and Mahmood, Faisal},
+    title     = {Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2022},
+    pages     = {16144-16155}
 }
 ```
 © This code is made available under the GPLv3 License and is available for non-commercial academic purposes.
