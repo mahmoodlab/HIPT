@@ -5,7 +5,7 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
   <b>Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning</b>, CVPR 2022.
   <a href="https://openaccess.thecvf.com/content/CVPR2022/html/Chen_Scaling_Vision_Transformers_to_Gigapixel_Images_via_Hierarchical_Self-Supervised_Learning_CVPR_2022_paper.html" target="blank">[HTML]</a>
   <a href="https://arxiv.org/abs/2206.02647" target="blank">[arXiv]</a>
-  [Oral]
+  <a href="https://www.youtube.com/watch?v=cABkB1J-GTA" target="blank">[Oral]</a>
 	<br><em><a href="http://richarizardd.me">Richard. J. Chen</a>, <a href="https://www.kuanchchen.com">Chengkuan Chen</a>, <a href="https://www.linkedin.com/in/yicong-jackson-li/">Yicong Li</a>, <a href="https://twitter.com/tiffanyytchen">Tiffany Y. Chen</a>, <a href="https://www.gatesfoundation.org/about/leadership/andrew-trister">Andrew D. Trister</a>, <a href="http://www.cs.toronto.edu/~rahulgk/index.html">Rahul G. Krishnan*</a>, <a href="https://faisal.ai/">Faisal Mahmood*</a></em></br>
 </summary>
 
