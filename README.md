@@ -66,7 +66,7 @@ Standalone HIPT model architecture that can load fully self-supervised weights f
 ```python
 import torch
 from einops import rearrange, repeat
-from HIPT_4K.utils import get_vit256, get_vit4k
+from HIPT_4K.hipt_model_utils import get_vit256, get_vit4k
 
 class HIPT_4K(torch.nn.Module):
     """
