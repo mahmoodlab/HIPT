@@ -1,4 +1,5 @@
 ### Dependencies
+# Base Dependencies
 import argparse
 import colorsys
 from io import BytesIO
@@ -7,6 +8,7 @@ import random
 import requests
 import sys
 
+# LinAlg / Stats / Plotting Dependencies
 import cv2
 import h5py
 import matplotlib
@@ -22,88 +24,43 @@ from skimage.measure import find_contours
 from tqdm import tqdm
 import webdataset as wds
 
+# Torch Dependencies
 import torch
-import torch.nn as nn
+import torch.multiprocessing
 import torchvision
-from torchvision import transforms as pth_transforms
-import torchvision.transforms as transforms
+from torchvision import transforms
 from einops import rearrange, repeat
+torch.multiprocessing.set_sharing_strategy('file_system')
 
-sys.path.append('../')
-sys.path.append('../Hierarchical-Pretraining/')
-import vision_transformer as vits
-import vision_transformer4k as vits4k
 
-def get_vit256(pretrained_weights, arch='vit_small', device=torch.device('cuda:0')):
+def concat_scores256(attns, w_256, h_256, size=(256,256)):
+	r"""
+
+	"""
+	rank = lambda v: rankdata(v)*100/len(v)
+	color_block = [rank(attn.flatten()).reshape(size) for attn in attns]
+	color_hm = np.concatenate([
+		np.concatenate(color_block[i:(i+h_256)], axis=1)
+		for i in range(0,h_256*w_256,h_256)
+	])
+	return color_hm
+
+
+def concat_scores4k(attn, size=(4096, 4096)):
     r"""
-    Builds ViT-256 Model.
-    
-    Args:
-    - pretrained_weights (str): Path to ViT-256 Model Checkpoint.
-    - arch (str): Which model architecture.
-    - device (torch): Torch device to save model.
-    
-    Returns:
-    - model256 (torch.nn): Initialized model.
+
     """
-    
-    checkpoint_key = 'teacher'
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-    model256 = vits.__dict__[arch](patch_size=16, num_classes=0)
-    for p in model256.parameters():
-        p.requires_grad = False
-    model256.eval()
-    model256.to(device)
-
-    if os.path.isfile(pretrained_weights):
-        state_dict = torch.load(pretrained_weights, map_location="cpu")
-        if checkpoint_key is not None and checkpoint_key in state_dict:
-            print(f"Take key {checkpoint_key} in provided checkpoint dict")
-            state_dict = state_dict[checkpoint_key]
-        # remove `module.` prefix
-        state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
-        # remove `backbone.` prefix induced by multicrop wrapper
-        state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
-        msg = model256.load_state_dict(state_dict, strict=False)
-        print('Pretrained weights found at {} and loaded with msg: {}'.format(pretrained_weights, msg))
-        
-    return model256
+    rank = lambda v: rankdata(v)*100/len(v)
+    color_hm = rank(attn.flatten()).reshape(size)
+    return color_hm
 
 
-def get_vit4k(pretrained_weights, arch='vit4k_xs', device=torch.device('cuda:1')):
+def get_scores256(attns, size=(256,256)):
     r"""
-    Builds ViT-4K Model.
-    
-    Args:
-    - pretrained_weights (str): Path to ViT-4K Model Checkpoint.
-    - arch (str): Which model architecture.
-    - device (torch): Torch device to save model.
-    
-    Returns:
-    - model256 (torch.nn): Initialized model.
     """
-    
-    checkpoint_key = 'teacher'
-    device = torch.device("cuda:1") if torch.cuda.is_available() else torch.device("cpu")
-    model4k = vits4k.__dict__[arch](num_classes=0)
-    for p in model4k.parameters():
-        p.requires_grad = False
-    model4k.eval()
-    model4k.to(device)
-
-    if os.path.isfile(pretrained_weights):
-        state_dict = torch.load(pretrained_weights, map_location="cpu")
-        if checkpoint_key is not None and checkpoint_key in state_dict:
-            print(f"Take key {checkpoint_key} in provided checkpoint dict")
-            state_dict = state_dict[checkpoint_key]
-        # remove `module.` prefix
-        state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
-        # remove `backbone.` prefix induced by multicrop wrapper
-        state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
-        msg = model4k.load_state_dict(state_dict, strict=False)
-        print('Pretrained weights found at {} and loaded with msg: {}'.format(pretrained_weights, msg))
-        
-    return model4k
+    rank = lambda v: rankdata(v)*100/len(v)
+    color_block = [rank(attn.flatten()).reshape(size) for attn in attns][0]
+    return color_block
 
 
 def cmap_map(function, cmap):
@@ -142,40 +99,8 @@ def cmap_map(function, cmap):
         colorvector.sort()
         cdict[key] = colorvector
 
-    return matplotlib.colors.LinearSegmentedColormap('colormap',cdict,1024)
+    return matplotlib.colors.LinearSegmentedColormap('colormap', cdict, 1024)
 
-
-def identity(x):
-    r"""
-    Identity Function.
-    
-    Args:
-    - x:
-    
-    Returns:
-    - x
-    """
-    return x
-
-def tensorbatch2im(input_image, imtype=np.uint8):
-    r""""
-    Converts a Tensor array into a numpy image array.
-    
-    Args:
-        - input_image (torch.Tensor): (B, C, W, H) Torch Tensor.
-        - imtype (type): the desired type of the converted numpy array
-        
-    Returns:
-        - image_numpy (np.array): (B, W, H, C) Numpy Array.
-    """
-    if not isinstance(input_image, np.ndarray):
-        image_numpy = input_image.cpu().float().numpy()  # convert it into a numpy array
-        #if image_numpy.shape[0] == 1:  # grayscale to RGB
-        #    image_numpy = np.tile(image_numpy, (3, 1, 1))
-        image_numpy = (np.transpose(image_numpy, (0, 2, 3, 1)) + 1) / 2.0 * 255.0  # post-processing: tranpose and scaling
-    else:  # if it is a numpy array, do nothing
-        image_numpy = input_image
-    return image_numpy.astype(imtype)
 
 def getConcatImage(imgs, how='horizontal', gap=0):
     r"""
@@ -224,77 +149,16 @@ def add_margin(pil_img, top, right, bottom, left, color):
     result.paste(pil_img, (left, top))
     return result
 
-
-def concat_scores256(attns, size=(256,256)):
-    r"""
-    """
-    rank = lambda v: rankdata(v)*100/len(v)
-    color_block = [rank(attn.flatten()).reshape(size) for attn in attns]
-    color_hm = np.concatenate([
-        np.concatenate(color_block[i:(i+16)], axis=1)
-        for i in range(0,256,16)
-    ])
-    return color_hm
-
-
-def concat_scores4k(attn, size=(4096, 4096)):
-    r"""
-    """
-    rank = lambda v: rankdata(v)*100/len(v)
-    color_hm = rank(attn.flatten()).reshape(size)
-    return color_hm
-
-
-
-def get_scores256(attns, size=(256,256)):
-    r"""
-    """
-    rank = lambda v: rankdata(v)*100/len(v)
-    color_block = [rank(attn.flatten()).reshape(size) for attn in attns][0]
-    return color_block
-
-
-def get_patch_attention_scores(patch, model256, scale=1, device256=torch.device('cuda:0')):
-    r"""
-    Forward pass in ViT-256 model with attention scores saved.
-    
-    Args:
-    - region (PIL.Image):       4096 x 4096 Image 
-    - model256 (torch.nn):      256-Level ViT 
-    - scale (int):              How much to scale the output image by (e.g. - scale=4 will resize images to be 1024 x 1024.)
-    
-    Returns:
-    - attention_256 (torch.Tensor): [1, 256/scale, 256/scale, 3] torch.Tensor of attention maps for 256-sized patches.
-    """
-    t = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(
-            [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]
-        )
-    ])
-
-    with torch.no_grad():   
-        batch_256 = t(patch).unsqueeze(0)
-        batch_256 = batch_256.to(device256, non_blocking=True)
-        features_256 = model256(batch_256)
-
-        attention_256 = model256.get_last_selfattention(batch_256)
-        nh = attention_256.shape[1] # number of head
-        attention_256 = attention_256[:, :, 0, 1:].reshape(256, nh, -1)
-        attention_256 = attention_256.reshape(1, nh, 16, 16)
-        attention_256 = nn.functional.interpolate(attention_256, scale_factor=int(16/scale), mode="nearest").cpu().numpy()
-
-        if scale != 1:
-            batch_256 = nn.functional.interpolate(batch_256, scale_factor=(1/scale), mode="nearest")
-            
-    return tensorbatch2im(batch_256), attention_256
-
-
+################################################
+# 256 x 256 ("Patch") Attention Heatmap Creation
+################################################
 def create_patch_heatmaps_indiv(patch, model256, output_dir, fname, threshold=0.5,
                              offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cuda:0')):
     r"""
     Creates patch heatmaps (saved individually)
     
+    To be refactored!
+
     Args:
     - patch (PIL.Image):        256 x 256 Image 
     - model256 (torch.nn):      256-Level ViT 
@@ -350,10 +214,12 @@ def create_patch_heatmaps_indiv(patch, model256, output_dir, fname, threshold=0.
         
         
 def create_patch_heatmaps_concat(patch, model256, output_dir, fname, threshold=0.5,
-                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm')):
+                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cuda:0')):
     r"""
     Creates patch heatmaps (concatenated for easy comparison)
     
+    To be refactored!
+
     Args:
     - patch (PIL.Image):        256 x 256 Image 
     - model256 (torch.nn):      256-Level ViT 
@@ -368,8 +234,8 @@ def create_patch_heatmaps_concat(patch, model256, output_dir, fname, threshold=0
     """
     patch1 = patch.copy()
     patch2 = add_margin(patch.crop((16,16,256,256)), top=0, left=0, bottom=16, right=16, color=(255,255,255))
-    b256_1, a256_1 = get_patch_attention_scores(patch1, model256)
-    b256_1, a256_2 = get_patch_attention_scores(patch2, model256)
+    b256_1, a256_1 = get_patch_attention_scores(patch1, model256, device256=device256)
+    b256_1, a256_2 = get_patch_attention_scores(patch2, model256, device256=device256)
     save_region = np.array(patch.copy())
     s = 256
     offset_2 = offset
@@ -420,33 +286,18 @@ def create_patch_heatmaps_concat(patch, model256, output_dir, fname, threshold=0
     getConcatImage([getConcatImage(hms[0:3]), 
                     getConcatImage(hms[3:6])], how='vertical').save(os.path.join(output_dir, '%s_256hm.png' % (fname)))
 
-    
-def hipt_forward_pass(region, model256, model4k, scale=1,
-                                device256=torch.device('cuda:0'), 
-                                device4k=torch.device('cuda:1')):
-    t = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(
-            [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]
-        )
-    ])
 
-    with torch.no_grad():   
-        batch_256 = t(region).unsqueeze(0).unfold(2, 256, 256).unfold(3, 256, 256)
-        batch_256 = rearrange(batch_256, 'b c p1 p2 w h -> (b p1 p2) c w h')
-        batch_256 = batch_256.to(device256, non_blocking=True)
-        features_256 = model256(batch_256)
-        features_256 = features_256.unfold(0, 16, 16).transpose(0,1).unsqueeze(dim=0)
-        features_4096 = model4k.forward(features_256.to(device4k))
-        return features_4096
-
-
+################################################
+# 4096 x 4096 ("Region") Attention Heatmap Creation
+################################################
 def get_region_attention_scores(region, model256, model4k, scale=1,
                                 device256=torch.device('cuda:0'), 
                                 device4k=torch.device('cuda:1')):
     r"""
     Forward pass in hierarchical model with attention scores saved.
     
+    To be refactored!
+
     Args:
     - region (PIL.Image):       4096 x 4096 Image 
     - model256 (torch.nn):      256-Level ViT 
@@ -491,10 +342,13 @@ def get_region_attention_scores(region, model256, model4k, scale=1,
 
 
 def create_hierarchical_heatmaps_indiv(region, model256, model4k, output_dir, fname,
-                             offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm'), threshold=None):
+                             offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm'), threshold=None, 
+                             device256=torch.device('cuda:0'), device4k=torch.device('cuda:1')):
     r"""
     Creates hierarchical heatmaps (Raw H&E + ViT-256 + ViT-4K + Blended Heatmaps saved individually).  
     
+    To be refactored!
+
     Args:
     - region (PIL.Image):       4096 x 4096 Image 
     - model256 (torch.nn):      256-Level ViT 
@@ -517,11 +371,10 @@ def create_hierarchical_heatmaps_indiv(region, model256, model4k, output_dir, fn
     region4 = add_margin(region.crop((128*3,128*3,4096,4096)), 
                      top=0, left=0, bottom=128*4, right=128*4, color=(255,255,255))
     
-    b256_1, a256_1, a4k_1 = get_region_attention_scores(region, model256, model4k, scale)
-    
-    b256_2, a256_2, a4k_2 = get_region_attention_scores(region2, model256, model4k, scale)
-    b256_3, a256_3, a4k_3 = get_region_attention_scores(region3, model256, model4k, scale)
-    b256_4, a256_4, a4k_4 = get_region_attention_scores(region4, model256, model4k, scale)
+    b256_1, a256_1, a4k_1 = get_region_attention_scores(region, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_2, a256_2, a4k_2 = get_region_attention_scores(region2, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_3, a256_3, a4k_3 = get_region_attention_scores(region3, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_4, a256_4, a4k_4 = get_region_attention_scores(region4, model256, model4k, scale, device256=device256, device4k=device4k)
     offset_2 = (offset*1)//scale
     offset_3 = (offset*2)//scale
     offset_4 = (offset*3)//scale
@@ -630,10 +483,13 @@ def create_hierarchical_heatmaps_indiv(region, model256, model4k, output_dir, fn
 
 
 def create_hierarchical_heatmaps_concat(region, model256, model4k, output_dir, fname,
-                             offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm')):
+                             offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm'),
+                             device256=torch.device('cuda:0'), device4k=torch.device('cuda:1')):
     r"""
     Creates hierarchical heatmaps (With Raw H&E + ViT-256 + ViT-4K + Blended Heatmaps concatenated for easy comparison)
     
+    To be refactored!
+
     Args:
     - region (PIL.Image):       4096 x 4096 Image 
     - model256 (torch.nn):      256-Level ViT 
@@ -656,11 +512,10 @@ def create_hierarchical_heatmaps_concat(region, model256, model4k, output_dir, f
     region4 = add_margin(region.crop((128*3,128*3,4096,4096)), 
                      top=0, left=0, bottom=128*4, right=128*4, color=(255,255,255))
     
-    b256_1, a256_1, a4k_1 = get_region_attention_scores(region, model256, model4k, scale)
-    
-    b256_2, a256_2, a4k_2 = get_region_attention_scores(region2, model256, model4k, scale)
-    b256_3, a256_3, a4k_3 = get_region_attention_scores(region3, model256, model4k, scale)
-    b256_4, a256_4, a4k_4 = get_region_attention_scores(region4, model256, model4k, scale)
+    b256_1, a256_1, a4k_1 = get_region_attention_scores(region, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_2, a256_2, a4k_2 = get_region_attention_scores(region2, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_3, a256_3, a4k_3 = get_region_attention_scores(region3, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_4, a256_4, a4k_4 = get_region_attention_scores(region4, model256, model4k, scale, device256=device256, device4k=device4k)
     offset_2 = (offset*1)//scale
     offset_3 = (offset*2)//scale
     offset_4 = (offset*3)//scale
@@ -724,12 +579,13 @@ def create_hierarchical_heatmaps_concat(region, model256, model4k, output_dir, f
 
 
 def create_hierarchical_heatmaps_concat_select(region, model256, model4k, output_dir, fname,
-                             offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm')):
+                             offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm'),
+                             device256=torch.device('cuda:0'), device4k=torch.device('cuda:1')):
     r"""
-    Creates hierarchical heatmaps (With Raw H&E + ViT-256 + ViT-4K + Blended Heatmaps concatenated for easy comparison)
-
-    Note that only select attention heads are used.
+    Creates hierarchical heatmaps (With Raw H&E + ViT-256 + ViT-4K + Blended Heatmaps concatenated for easy comparison), with only select attention heads are used.
     
+    To be refactored!
+
     Args:
     - region (PIL.Image):       4096 x 4096 Image 
     - model256 (torch.nn):      256-Level ViT 
@@ -752,11 +608,10 @@ def create_hierarchical_heatmaps_concat_select(region, model256, model4k, output
     region4 = add_margin(region.crop((128*3,128*3,4096,4096)), 
                      top=0, left=0, bottom=128*4, right=128*4, color=(255,255,255))
     
-    b256_1, a256_1, a4k_1 = get_region_attention_scores(region, model256, model4k, scale)
-    
-    b256_2, a256_2, a4k_2 = get_region_attention_scores(region2, model256, model4k, scale)
-    b256_3, a256_3, a4k_3 = get_region_attention_scores(region3, model256, model4k, scale)
-    b256_4, a256_4, a4k_4 = get_region_attention_scores(region4, model256, model4k, scale)
+    b256_1, a256_1, a4k_1 = get_region_attention_scores(region, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_2, a256_2, a4k_2 = get_region_attention_scores(region2, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_3, a256_3, a4k_3 = get_region_attention_scores(region3, model256, model4k, scale, device256=device256, device4k=device4k)
+    b256_4, a256_4, a4k_4 = get_region_attention_scores(region4, model256, model4k, scale, device256=device256, device4k=device4k)
     offset_2 = (offset*1)//scale
     offset_3 = (offset*2)//scale
     offset_4 = (offset*3)//scale

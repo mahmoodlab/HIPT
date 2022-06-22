@@ -17,7 +17,6 @@ import torch.nn.functional as F
 from torchvision import datasets, transforms
 from torchvision import models as torchvision_models
 
-import utils
 import vision_transformer as vits
 from vision_transformer import DINOHead
 
@@ -26,9 +25,6 @@ from functools import partial
 
 import torch
 import torch.nn as nn
-
-#from utils import trunc_normal_
-
 
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
