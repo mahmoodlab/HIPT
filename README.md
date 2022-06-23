@@ -60,6 +60,11 @@ To clone all files:
 git clone https://github.com/mahmoodlab/HIPT.git
 ```
 
+To install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
 ## Two-Stage HIPT Model Walkthrough & Hierarchical Interpretability
 Standalone HIPT model architecture that can load fully self-supervised weights for nested [16 x 16] and [256 x 256] token aggregation. HIPT_4K was used for feature extraction of non-overlapping [4096 x 4096] image regions across the TCGA.
 
