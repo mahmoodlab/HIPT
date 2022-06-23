@@ -347,6 +347,11 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --which_split
 ```
 </details>
 
+## Understanding Baselines, Clarifications, and Future Work
+- As slide-level tasks in the TCGA do not have official benchmarks, reported AUC performance may vary with different train-test splits. The results in this work use the following [10-fold CV]() and [5-fold CV]() train-test splits, which have been used consistently in prior works. Though the comparisons of MIL architecture performance are equivalent (all methods using same pretrained patch-level embeddings), general comparisons with MIL performance of prior works cannot be made, as: 1) different patch-level embeddings are used for training MIL methods (ImageNet ResNet-50 vs. SSL ViT-16), 2) a number of WSIs were excluded in each cohort, due to the lack of tissue content in patching at [4096 x 4096] resolution. To reproduce the results of this paper, you must use the exact train-test splits with the same pretrained embedding type.
+- One interesting finding is that despite mean ViT_4K-256 performing well in KNN evaluation, mean ViT_256-16 embeddings did not perform as well as mean ResNet-50 (transferred from ImageNet) embeddings. Since Hierarchical Pretraining of ViT_4K-256 depends on pre-extracted ViT_256-16 embeddings, there is room for improvement in boosting unsupervised and weakly-supervised slide-level performance.
+
+
 ## Issues
 - Please report issues directly to richardchen@g.harvard.edu. At the moment, I am away (at CVPR) and respond faster to emails!
 
