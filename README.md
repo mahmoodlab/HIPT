@@ -354,7 +354,7 @@ In making the pretrained weights for HIPT fully-available, we hope that HIPT can
 
 
 ## Issues
-- Please publicly report all issues. 
+- Please open new threads or report issues directly to richardchen@g.harvard.edu.
 
 ## Acknowledgements, License & Usage 
 - We thank Felix Yu, Ming Y. Lu, Chunyuan Li, and the BioML group at Microsoft Research New England for their insightful feedback.
