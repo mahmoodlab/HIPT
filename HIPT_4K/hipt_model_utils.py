@@ -1,35 +1,17 @@
 ### Dependencies
 # Base Dependencies
-import argparse
-import colorsys
-from io import BytesIO
 import os
-import random
-import requests
-import sys
 
 # LinAlg / Stats / Plotting Dependencies
-import cv2
-import h5py
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 import numpy as np
 from PIL import Image
-from PIL import ImageFont
-from PIL import ImageDraw 
-from scipy.stats import rankdata
-import skimage.io
-from skimage.measure import find_contours
-from tqdm import tqdm
-import webdataset as wds
 
 # Torch Dependencies
 import torch
 import torch.multiprocessing
-import torchvision
 from torchvision import transforms
-from einops import rearrange, repeat
+from einops import rearrange
+
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 # Local Dependencies
