@@ -31,8 +31,8 @@ class HIPT_4K(torch.nn.Module):
 		device4k=torch.device('cuda:1')):
 
 		super().__init__()
-		self.model256 = get_vit256(pretrained_weights=model256_path).to(device256)
-		self.model4k = get_vit4k(pretrained_weights=model4k_path).to(device4k)
+		self.model256 = get_vit256(pretrained_weights=model256_path, device=device256).to(device256)
+		self.model4k = get_vit4k(pretrained_weights=model4k_path, device=device4k).to(device4k)
 		self.device256 = device256
 		self.device4k = device4k
 	
