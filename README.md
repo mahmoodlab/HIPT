@@ -38,6 +38,7 @@ Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised
 
 ## Updates / TODOs
 Please follow this GitHub for more updates.
+- [ ] Removing dead code in HIPT_4K library.
 - [X] Better documentation on interpretability code example.
 - [x] Add pretrained models + instructions for hierarchical visualization.
 - [X] Add pre-extracted slide-level embeddings, and code for K-NN evaluation.
@@ -138,8 +139,15 @@ x = eval_transforms()(region).unsqueeze(dim=0)
 out = model.forward(x)
 ```
 
-### Interpretability
+### Hierarchical Interpretability
+
+<div align="center">
+  <img width="100%" alt="DINO illustration" src=".github/HIPT_attention.jpg">
+</div>
+
 For hierarchical interpretability, please see the [following notebook](https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/HIPT_4K%20Inference%20%2B%20Attention%20Visualization.ipynb), which uses the following functions in [./HIPT_4K/hipt_heatmap_utils.py](https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/hipt_heatmap_utils.py).
+
+
 
 ## Downloading + Preprocessing + Organizing TCGA Data
 Using the [NIH Genomic Data Commons Data Portal](https://portal.gdc.cancer.gov/) and the [cBioPortal](https://www.cbioportal.org/), we downloaded diagnostic whole-slide images (WSIs) for 28 cancer types using the [GDC Data Transfer Tool](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Data_Download_and_Upload/), followed by using the publicly-available [CLAM library](https://github.com/mahmoodlab/CLAM) for tissue segmentation, tissue patching and feature extraction, which we modified for extracting both ResNet-50 features (pretrained on ImageNet) and ViT-16 features (pretrained on the TCGA). For patching at `[256 × 256]` resolution, we used default tissue segmentation parameters. For patching at `[4096 × 4096]` resolution, we additionally saved each `[4096 × 4096]` image region, which we used for ViT_256-16 and ViT_4096-256 pretraining (`-16` suffix == using [16 × 16]-sized tokens in a ViT model, `-256` suffix == using [256 × 256]-sized tokens in a ViT model). Extracted TCGA features are organized in the following example directory:
