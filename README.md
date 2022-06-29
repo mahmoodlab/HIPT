@@ -64,8 +64,10 @@ To install Python dependencies:
 pip install -r requirements.txt
 ```
 
-## Two-Stage HIPT Model Walkthrough & Hierarchical Interpretability
-Standalone HIPT model architecture that can load fully self-supervised weights for nested [16 x 16] and [256 x 256] token aggregation. HIPT_4K was used for feature extraction of non-overlapping [4096 x 4096] image regions across the TCGA.
+## HIPT Walkthrough
+
+### How HIPT Works
+Below is a snippet of a standalone two-stage HIPT model architecture that can load fully self-supervised weights for nested [16 x 16] and [256 x 256] token aggregation, defined in [./HIPT_4K/hipt_4k.py](https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/hipt_4k.py). Via a few ```einsum``` operations, you can put together multiple ViT encoders and have it scale to large resolutions. HIPT_4K was used for feature extraction of non-overlapping [4096 x 4096] image regions across the TCGA.
 
 ```python
 import torch
@@ -121,6 +123,23 @@ class HIPT_4K(torch.nn.Module):
         features_cls4k = self.model4k.forward(features_cls256)                  # 5. [1 x 192], where 192 == dim of ViT_4K [ClS] token.
         return features_cls4k
 ```
+
+### Using the HIPT_4K API
+You can use the HIPT_4K model out-of-the-box, and use it to plug-and-play into any of your downstream tasks (example below).
+```python
+from HIPT_4K.hipt_4k import HIPT_4K
+from HIPT_4K.hipt_model_utils import eval_transforms
+
+model = HIPT_4K()
+model.eval()
+
+region = Image.open('HIPT_4K/image_demo/image_4k.png')
+x = eval_transforms()(region).unsqueeze(dim=0)
+out = model.forward(x)
+```
+
+### Interpretability
+For hierarchical interpretability, please see the [following notebook](https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/HIPT_4K%20Inference%20%2B%20Attention%20Visualization.ipynb), which uses the following functions in [./HIPT_4K/hipt_heatmap_utils.py](https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/hipt_heatmap_utils.py).
 
 ## Downloading + Preprocessing + Organizing TCGA Data
 Using the [NIH Genomic Data Commons Data Portal](https://portal.gdc.cancer.gov/) and the [cBioPortal](https://www.cbioportal.org/), we downloaded diagnostic whole-slide images (WSIs) for 28 cancer types using the [GDC Data Transfer Tool](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Data_Download_and_Upload/), followed by using the publicly-available [CLAM library](https://github.com/mahmoodlab/CLAM) for tissue segmentation, tissue patching and feature extraction, which we modified for extracting both ResNet-50 features (pretrained on ImageNet) and ViT-16 features (pretrained on the TCGA). For patching at `[256 × 256]` resolution, we used default tissue segmentation parameters. For patching at `[4096 × 4096]` resolution, we additionally saved each `[4096 × 4096]` image region, which we used for ViT_256-16 and ViT_4096-256 pretraining (`-16` suffix == using [16 × 16]-sized tokens in a ViT model, `-256` suffix == using [256 × 256]-sized tokens in a ViT model). Extracted TCGA features are organized in the following example directory:
@@ -379,4 +398,8 @@ In making the pretrained weights for HIPT fully-available, we hope that HIPT can
     pages     = {16144-16155}
 }
 ```
-© This code is made available under the GPLv3 License and is available for non-commercial academic purposes.
+Any work that cites HIPT should also cite the [original Vision Transformer](https://arxiv.org/abs/2010.11929) and [DINO](https://github.com/facebookresearch/dino).
+
+
+© This code is made available under the Commons Clasuse License and is available for non-commercial academic purposes.
+
