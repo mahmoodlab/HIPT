@@ -328,7 +328,7 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --model_type 
 ```
 </details>
  
-Analagously, we also use the same CLAM scaffold code for survival prediction, and make available our [saved results directory / tensorboard logs]([https://github.com/707884/707884/tree/master/2-Weakly-Supervised-Train-Val/results_surv/5foldcv](https://github.com/mahmoodlab/HIPT/tree/master/2-Weakly-Supervised-Survival/results_2022_surv/5foldcv)) and [evaluation code]([https://github.com/707884/707884/blob/master/2-Weakly-Supervised-Train-Val/Evaluation-Survival.ipynb](https://github.com/mahmoodlab/HIPT/blob/master/2-Weakly-Supervised-Survival/Evaluation-Survival.ipynb)).
+Analagously, we also use the same CLAM scaffold code for survival prediction, and make available our [saved results directory / tensorboard logs](https://github.com/mahmoodlab/HIPT/tree/master/2-Weakly-Supervised-Survival/results_2022_surv/5foldcv) and [evaluation code](https://github.com/mahmoodlab/HIPT/blob/master/2-Weakly-Supervised-Survival/Evaluation-Survival.ipynb).
 <details>
 <summary>
 Full List of Training Survival Commands
