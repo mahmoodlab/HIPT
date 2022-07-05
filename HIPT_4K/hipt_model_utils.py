@@ -111,7 +111,7 @@ def get_vit4k(pretrained_weights, arch='vit4k_xs', device=torch.device('cuda:1')
 def eval_transforms():
 	"""
 	"""
-	mean, std = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
+	mean, std = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
 	eval_t = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean = mean, std = std)])
 	return eval_t
 
