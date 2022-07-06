@@ -150,7 +150,7 @@ For hierarchical interpretability, please see the [following notebook](https://g
 
 
 ## Downloading + Preprocessing + Organizing TCGA Data
-Using the [NIH Genomic Data Commons Data Portal](https://portal.gdc.cancer.gov/) and the [cBioPortal](https://www.cbioportal.org/), we downloaded diagnostic whole-slide images (WSIs) for 28 cancer types using the [GDC Data Transfer Tool](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Data_Download_and_Upload/), followed by using the publicly-available [CLAM library](https://github.com/mahmoodlab/CLAM) for tissue segmentation, tissue patching and feature extraction, which we modified for extracting both ResNet-50 features (pretrained on ImageNet) and ViT-16 features (pretrained on the TCGA). For patching at `[256 × 256]` resolution, we used default tissue segmentation parameters. For patching at `[4096 × 4096]` resolution, we additionally saved each `[4096 × 4096]` image region, which we used for ViT_256-16 and ViT_4096-256 pretraining (`-16` suffix == using [16 × 16]-sized tokens in a ViT model, `-256` suffix == using [256 × 256]-sized tokens in a ViT model). Extracted TCGA features are organized in the following example directory:
+Using the [NIH Genomic Data Commons Data Portal](https://portal.gdc.cancer.gov/) and the [cBioPortal](https://www.cbioportal.org/), we downloaded diagnostic whole-slide images (WSIs) for 28 cancer types using the [GDC Data Transfer Tool](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Data_Download_and_Upload/), followed by using the publicly-available [CLAM library](https://github.com/mahmoodlab/CLAM) for tissue segmentation, tissue patching and feature extraction, which we modified for extracting both ResNet-50 features (pretrained on ImageNet) and ViT-16 features (pretrained on the TCGA). For patching at `[256 × 256]` resolution, we used default tissue segmentation parameters. For patching at `[4096 × 4096]` resolution, we additionally saved each `[4096 × 4096]` image region, which we used for ViT_256-16 and ViT_4096-256 pretraining (`-16` suffix == using [16 × 16]-sized tokens in a ViT model, `-256` suffix == using [256 × 256]-sized tokens in a ViT model). Extracted TCGA features are organized in the following directories:
 <details>
 <summary>
 Example Directory
@@ -242,6 +242,8 @@ In extracting patches at 20X magnification with non-overlapping patch sizes of 2
     - `vits_tcga_pancancer_dino_pt_patch_features/`: Directory of pre-extracted ViT-16 features (pretrained on TCGA) for each `[4096 × 4096]` region within each WSI (with regions read via OpenSlide using coordinates in `patches/`, saved in a `*.pt` format. Each `*.pt` file is a `[M × 256 × 384]`-sized Tensor containing extracted 384-dim embeddings for `M` regions in the WSI, which each region represented as as a 256-length sequence of `[256 × 256]` patch embeddings.
     - `process_list_autogen.csv`: An auto-generated csv file that contains a list of all slides processed, along with their segmentation/patching parameters used. Note that in using a large image resolution for patching, not all WSIs are used in `[4096 × 4096]` evaluation.
 </details>
+
+Organizing the folders and subfolders for all of these different cancer types (with different features types too) allowed ease of running classification experiments.
  
 ## Hierarchical Pretraining for ViT-16/256 Models + Pretrained Models
 <details>
@@ -272,7 +274,7 @@ TCGA_PRETRAINING_DIR/
   - `./HIPT_4K/Checkpoints/`: Directory for holding the pretrained weights, which we use for feature extraction. Our pretraining method largely follows the original [DINO](https://github.com/facebookresearch) framework for conventional `[256 × 256]` image pretraining using ViT_256-16, which we extend to the `[4096 × 4096]` setting. Again, note that the `-16` suffix refers to using [16 × 16]-sized tokens in a ViT model, and the `-256` suffix using [256 × 256]-sized tokens in a ViT model. The following commands below are used for pretraining.
 
 ```python
-python -m torch.distributed.launch --nproc_per_node=8 main_dino256.py --arch vit_small --data_path /path/to/TCGA_PRETRAINING_DIR/patch_256_pretraining/ --output_dir /path/to/TCGA_PRETRAINING_DIR/ckpts/pretrain/ --epochs 100
+python -m torch.distributed.launch --nproc_per_node=8 main_dino.py --arch vit_small --data_path /path/to/TCGA_PRETRAINING_DIR/patch_256_pretraining/ --output_dir /path/to/TCGA_PRETRAINING_DIR/ckpts/pretrain/ --epochs 100
 python -m torch.distributed.launch --nproc_per_node=8 main_dino4k.py --arch vit_xs --data_path /path/to/TCGA_PRETRAINING_DIR/region_4k_pretraining/ --output_dir /path/to/TCGA_PRETRAINING_DIR/ckpts/pretrain/ --epochs 100
 ```
 
@@ -321,7 +323,7 @@ python -m torch.distributed.launch --nproc_per_node=8 main_dino4k.py --arch vit_
 
 
 ## Weakly-Supervised Training + Evaluation
-Following ViT-16/256 pretraining and pre-extracting instance-level `[256 × 256]` features using ViT-16, we extend the publicly-available CLAM scaffold code for running 10-fold cross-validation experiments as well as implement several of the current weakly-supervised baselines. Our main method is `hipt_lgp` (abbreviated for HIPT with Local-Global Pretraining). We make available our [saved results directory](https://github.com/mahmoodlab/HIPT/tree/master/2-Weakly-Supervised-Subtyping/results_cvpr2022_class), [evaluation code](https://github.com/mahmoodlab/HIPT/blob/master/2-Weakly-Supervised-Subtyping/Evaluation-Classification.ipynb), and a [Jupyter Notebook](https://github.com/707884/707884/blob/master/2-Weakly-Supervised-Train-Val/Model%20Walkthrough.ipynb) containing a walkthrough of our method.
+Following ViT-16/256 pretraining and pre-extracting instance-level `[256 × 256]` features using ViT-16, we extend the publicly-available CLAM scaffold code for running 10-fold cross-validation experiments as well as implement several of the current weakly-supervised baselines. Our main method is `hipt_lgp` (abbreviated for HIPT with Local-Global Pretraining). We make available our [saved results directory](https://github.com/mahmoodlab/HIPT/tree/master/2-Weakly-Supervised-Subtyping/results_cvpr2022_class), [evaluation code](https://github.com/mahmoodlab/HIPT/blob/master/2-Weakly-Supervised-Subtyping/Evaluation-Classification.ipynb), and a [Jupyter Notebook](https://github.com/mahmoodlab/HIPT/blob/master/2-Weakly-Supervised-Subtyping/Model%20Walkthrough.ipynb) containing a walkthrough of our method.
 
 <details>
 <summary>
@@ -355,7 +357,7 @@ CUDA_VISIBLE_DEVICES=$GPU python main.py --data_root_dir $DATAROOT --model_type 
 ```
 </details>
  
-Analagously, we also use the same CLAM scaffold code for survival prediction, and make available our [saved results directory / tensorboard logs](https://github.com/mahmoodlab/HIPT/tree/master/2-Weakly-Supervised-Survival/results_2022_surv/5foldcv) and [evaluation code](https://github.com/mahmoodlab/HIPT/blob/master/2-Weakly-Supervised-Survival/Evaluation-Survival.ipynb).
+Analagously, we also use the [MCAT](https://github.com/mahmoodlab/MCAT) scaffold code for survival prediction, and make available our [saved results directory / tensorboard logs](https://github.com/mahmoodlab/HIPT/tree/master/2-Weakly-Supervised-Survival/results_2022_surv/5foldcv) and [evaluation code](https://github.com/mahmoodlab/HIPT/blob/master/2-Weakly-Supervised-Survival/Evaluation-Survival.ipynb).
 <details>
 <summary>
 Full List of Training Survival Commands
