@@ -23,7 +23,7 @@ class MIL_fc(nn.Module):
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.classifier.to(device)
 
-    def forward(self, h, return_features=False, **kwargs)::
+    def forward(self, h, return_features=False, **kwargs):
         if return_features:
             h = self.classifier.module[:3](h)
             logits = self.classifier.module[3](h)
@@ -65,7 +65,7 @@ class MIL_fc_mc(nn.Module):
         self.fc = self.fc.to(device)
         self.classifiers = self.classifiers.to(device)
     
-    def forward(self, h, return_features=False, **kwargs)::
+    def forward(self, h, return_features=False, **kwargs):
         device = h.device
        
         h = self.fc(h)

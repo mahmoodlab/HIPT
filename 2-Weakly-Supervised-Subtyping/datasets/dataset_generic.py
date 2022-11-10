@@ -355,8 +355,9 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
         else:
             data_dir = self.data_dir
 
+
         if not self.use_h5:
-            if self.mode == 'path':
+            if self.mode == 'path' or self.mode == 'local_region_features':
                 full_path = os.path.join(data_dir, '{}.pt'.format(slide_id.replace(".svs","")))
                 features = torch.load(full_path)
                 if 'dino' in full_path:
@@ -408,8 +409,11 @@ class Generic_Split(Generic_MIL_Dataset):
         for i in range(self.num_classes):
             self.slide_cls_ids[i] = np.where(self.slide_data['label'] == i)[0]
         cluster_dir = "/".join(data_dir.split("/")[0:-1])
-        with open(os.path.join(cluster_dir, 'fast_cluster_ids.pkl'), 'rb') as handle:
-            self.fname2ids = pickle.load(handle)
+        if os.path.isfile(os.path.join(cluster_dir, 'fast_cluster_ids.pkl')):
+            with open(os.path.join(cluster_dir, 'fast_cluster_ids.pkl'), 'rb') as handle:
+                self.fname2ids = pickle.load(handle)
+        else:
+            print("Cluster file missing")
 
     def __len__(self):
         return len(self.slide_data)

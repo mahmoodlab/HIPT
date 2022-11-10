@@ -7,7 +7,7 @@ class FCLayer(nn.Module):
     def __init__(self, in_size, out_size=1):
         super(FCLayer, self).__init__()
         self.fc = nn.Sequential(nn.Linear(in_size, out_size))
-    def forward(self, feats, **kwargs)::
+    def forward(self, feats, **kwargs):
         x = self.fc(feats)
         return feats, x
 
@@ -19,7 +19,7 @@ class IClassifier(nn.Module):
         self.fc = nn.Linear(feature_size, output_class)
         
         
-    def forward(self, x, **kwargs)::
+    def forward(self, x, **kwargs):
         device = x.device
         feats = self.feature_extractor(x) # N x K
         c = self.fc(feats.view(feats.shape[0], -1)) # N x C
@@ -37,7 +37,7 @@ class BClassifier(nn.Module):
         ### 1D convolutional layer that can handle multiple class (including binary)
         self.fcc = nn.Conv1d(output_class, output_class, kernel_size=input_size)  
         
-    def forward(self, feats, c, **kwargs):: # N x K, N x C
+    def forward(self, feats, c, **kwargs): # N x K, N x C
         device = feats.device
         V = self.v(feats) # N x V, unsorted
         Q = self.q(feats).view(feats.shape[0], -1) # N x Q, unsorted

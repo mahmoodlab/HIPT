@@ -9,8 +9,8 @@ import torch.nn.functional as F
 import torch.nn as nn
 from torch.nn import Sequential as Seq
 from torch.nn import Linear, LayerNorm, ReLU
-from torch_geometric.nn import GINConv
-from torch_geometric.transforms.normalize_features import NormalizeFeatures
+#from torch_geometric.nn import GINConv
+#from torch_geometric.transforms.normalize_features import NormalizeFeatures
 from models.model_utils import *
 
 ######################################

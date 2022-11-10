@@ -10,14 +10,14 @@ from models.model_mil import MIL_fc, MIL_fc_mc
 from models.model_dgcn import DeepGraphConv
 from models.model_clam import CLAM_MB, CLAM_SB
 from models.model_cluster import MIL_Cluster_FC
-from models.model_hierarchical_mil import HIPT_None_FC, HIPT_LGP_FC
+from models.model_hierarchical_mil import HIPT_None_FC, HIPT_LGP_FC, HIPT_GP_FC
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.metrics import auc as calc_auc
 
 import sys
-from utils.gpu_utils import gpu_profile, print_gpu_mem
-os.environ['GPU_DEBUG']='0'
+#from utils.gpu_utils import gpu_profile, print_gpu_mem
+#os.environ['GPU_DEBUG']='0'
 
 class Accuracy_Logger(object):
     """Accuracy logger"""
@@ -166,6 +166,8 @@ def train(datasets, cur, args):
             model = HIPT_None_FC(**model_dict)
         elif args.model_type == 'hipt_lgp':
             model = HIPT_LGP_FC(**model_dict, freeze_4k=args.freeze_4k, pretrain_4k=args.pretrain_4k, freeze_WSI=args.freeze_WSI, pretrain_WSI=args.pretrain_WSI)
+        elif args.model_type == 'hipt_gp':
+            model = HIPT_GP_FC(**model_dict, freeze_WSI=args.freeze_WSI, pretrain_WSI=args.pretrain_WSI)
     elif args.model_type == 'dsmil':
         i_classifier = FCLayer(in_size=args.path_input_dim, out_size=model_dict['n_classes'])
         b_classifier = BClassifier(input_size=args.path_input_dim, output_class=model_dict['n_classes'], dropout_v=0.0)
@@ -591,8 +593,10 @@ def summary(model, loader, n_classes):
         for class_idx in range(n_classes):
             if class_idx in all_labels:
                 fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
+                print(calc_auc(fpr, tpr))
                 aucs.append(calc_auc(fpr, tpr))
             else:
+                print('nan')
                 aucs.append(float('nan'))
 
         auc = np.nanmean(np.array(aucs))
