@@ -1,31 +1,22 @@
 ### Dependencies
 # Base Dependencies
 import os
-import pickle
-import sys
 
-# LinAlg / Stats / Plotting Dependencies
-import h5py
-import matplotlib.pyplot as plt
+# LinAlg / Stats
 import numpy as np
-import pandas as pd
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
-from tqdm import tqdm
 
 # Torch Dependencies
 import torch
 import torch.multiprocessing
-import torchvision
 from torchvision import transforms
-from einops import rearrange, repeat
+from einops import rearrange
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 # Local Dependencies
-import vision_transformer as vits
-import vision_transformer4k as vits4k
 from hipt_heatmap_utils import *
-from hipt_model_utils import get_vit256, get_vit4k, tensorbatch2im, eval_transforms, roll_batch2img
+from hipt_model_utils import get_vit256, get_vit4k, tensorbatch2im, eval_transforms
 
 
 class HIPT_4K(torch.nn.Module):
@@ -40,8 +31,8 @@ class HIPT_4K(torch.nn.Module):
 		device4k=torch.device('cuda:1')):
 
 		super().__init__()
-		self.model256 = get_vit256(pretrained_weights=model256_path).to(device256)
-		self.model4k = get_vit4k(pretrained_weights=model4k_path).to(device4k)
+		self.model256 = get_vit256(pretrained_weights=model256_path, device=device256).to(device256)
+		self.model4k = get_vit4k(pretrained_weights=model4k_path, device=device4k).to(device4k)
 		self.device256 = device256
 		self.device4k = device4k
 	
@@ -133,7 +124,6 @@ class HIPT_4K(torch.nn.Module):
 		- attention_256 (torch.Tensor): [256, 256/scale, 256/scale, 3] torch.Tensor sequence of attention maps for 256-sized patches.
 		- attention_4k (torch.Tensor): [1, 4096/scale, 4096/scale, 3] torch.Tensor sequence of attention maps for 4k-sized regions.
 		"""
-		eval_t = transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 		x = eval_transforms()(region).unsqueeze(dim=0)
 
 		batch_256, w_256, h_256 = self.prepare_img_tensor(x)
@@ -150,7 +140,6 @@ class HIPT_4K(torch.nn.Module):
 
 		features_grid256 = features_cls256.reshape(w_256, h_256, 384).transpose(0,1).transpose(0,2).unsqueeze(dim=0)
 		features_grid256 = features_grid256.to(self.device4k, non_blocking=True)
-		features_cls4k = self.model4k.forward(features_grid256).detach().cpu()
 
 		attention_4k = self.model4k.get_last_selfattention(features_grid256)
 		nh = attention_4k.shape[1] # number of head
@@ -185,13 +174,6 @@ class HIPT_4K(torch.nn.Module):
 		region = Image.fromarray(tensorbatch2im(x)[0])
 		w, h = region.size
 
-		region2 = add_margin(region.crop((128,128,w,h)), 
-						 top=0, left=0, bottom=128, right=128, color=(255,255,255))
-		region3 = add_margin(region.crop((128*2,128*2,w,h)), 
-						 top=0, left=0, bottom=128*2, right=128*2, color=(255,255,255))
-		region4 = add_margin(region.crop((128*3,128*3,w,h)), 
-						 top=0, left=0, bottom=128*4, right=128*4, color=(255,255,255))
-		
 		b256_1, a256_1, a4k_1 = self._get_region_attention_scores(region, scale)
 		b256_2, a256_2, a4k_2 = self._get_region_attention_scores(region, scale)
 		b256_3, a256_3, a4k_3 = self._get_region_attention_scores(region, scale)
@@ -223,14 +205,6 @@ class HIPT_4K(torch.nn.Module):
 				img_inverse = save_region.copy()
 				img_inverse[mask256 == 0.95] = 0
 				Image.fromarray(region256_hm+img_inverse).save(os.path.join(output_dir, '%s_256th[%d].png' % (fname, i)))
-		
-		if False:
-			for j in range(6):
-				score4k_1 = concat_scores4k(a4k_1[j], size=(h_s,w_s))
-				score4k = score4k_1 / 100
-				color_block4k = (cmap(score4k)*255)[:,:,:3].astype(np.uint8)
-				region4k_hm = cv2.addWeighted(color_block4k, alpha, save_region.copy(), 1-alpha, 0, save_region.copy())
-				Image.fromarray(region4k_hm).save(os.path.join(output_dir, '%s_4k[%s].png' % (fname, j)))
 		
 		hm4k, hm256, hm4k_256 = [], [], []
 		for j in range(6):
@@ -296,7 +270,6 @@ class HIPT_4K(torch.nn.Module):
 				overlay256[offset_2:h_s, offset_2:w_s] += 100
 				score256 = (score256_1+new_score256_2)/overlay256
 
-				factorize = lambda data: (data - np.min(data)) / (np.max(data) - np.min(data))
 				score = (score4k*overlay4k+score256*overlay256)/(overlay4k+overlay256) #factorize(score256*score4k)
 				color_block = (cmap(score)*255)[:,:,:3].astype(np.uint8)
 				region4k_256_hm = cv2.addWeighted(color_block, alpha, save_region.copy(), 1-alpha, 0, save_region.copy())

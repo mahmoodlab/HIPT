@@ -1,35 +1,17 @@
 ### Dependencies
 # Base Dependencies
-import argparse
-import colorsys
-from io import BytesIO
 import os
-import random
-import requests
-import sys
 
 # LinAlg / Stats / Plotting Dependencies
-import cv2
-import h5py
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 import numpy as np
 from PIL import Image
-from PIL import ImageFont
-from PIL import ImageDraw 
-from scipy.stats import rankdata
-import skimage.io
-from skimage.measure import find_contours
-from tqdm import tqdm
-import webdataset as wds
 
 # Torch Dependencies
 import torch
 import torch.multiprocessing
-import torchvision
 from torchvision import transforms
-from einops import rearrange, repeat
+from einops import rearrange
+
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 # Local Dependencies
@@ -50,7 +32,6 @@ def get_vit256(pretrained_weights, arch='vit_small', device=torch.device('cuda:0
     """
     
     checkpoint_key = 'teacher'
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     model256 = vits.__dict__[arch](patch_size=16, num_classes=0)
     for p in model256.parameters():
         p.requires_grad = False
@@ -86,7 +67,6 @@ def get_vit4k(pretrained_weights, arch='vit4k_xs', device=torch.device('cuda:1')
     """
     
     checkpoint_key = 'teacher'
-    device = torch.device("cuda:1") if torch.cuda.is_available() else torch.device("cpu")
     model4k = vits4k.__dict__[arch](num_classes=0)
     for p in model4k.parameters():
         p.requires_grad = False

@@ -1,35 +1,23 @@
 ### Dependencies
 # Base Dependencies
-import argparse
-import colorsys
-from io import BytesIO
 import os
-import random
-import requests
-import sys
 
 # LinAlg / Stats / Plotting Dependencies
 import cv2
-import h5py
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 import numpy as np
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw 
 from scipy.stats import rankdata
-import skimage.io
-from skimage.measure import find_contours
-from tqdm import tqdm
-import webdataset as wds
 
 # Torch Dependencies
 import torch
 import torch.multiprocessing
-import torchvision
 from torchvision import transforms
-from einops import rearrange, repeat
+from einops import rearrange
+
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 
@@ -401,14 +389,6 @@ def create_hierarchical_heatmaps_indiv(region, model256, model4k, output_dir, fn
             img_inverse = save_region.copy()
             img_inverse[mask256 == 0.95] = 0
             Image.fromarray(region256_hm+img_inverse).save(os.path.join(output_dir, '%s_256th[%d].png' % (fname, i)))
-    
-    if False:
-        for j in range(6):
-            score4k_1 = concat_scores4k(a4k_1[j], size=(s,)*2)
-            score4k = score4k_1 / 100
-            color_block4k = (cmap(score4k)*255)[:,:,:3].astype(np.uint8)
-            region4k_hm = cv2.addWeighted(color_block4k, alpha, save_region.copy(), 1-alpha, 0, save_region.copy())
-            Image.fromarray(region4k_hm).save(os.path.join(output_dir, '%s_4k[%s].png' % (fname, j)))
         
     for j in range(6):
         score4k_1 = concat_scores4k(a4k_1[j], size=(s,)*2)
@@ -556,7 +536,6 @@ def create_hierarchical_heatmaps_concat(region, model256, model4k, output_dir, f
             color_block256 = (cmap(score256)*255)[:,:,:3].astype(np.uint8)
             region256_hm = cv2.addWeighted(color_block256, alpha, save_region.copy(), 1-alpha, 0, save_region.copy())
         
-            factorize = lambda data: (data - np.min(data)) / (np.max(data) - np.min(data))
             score = (score4k*overlay4k+score256*overlay256)/(overlay4k+overlay256) #factorize(score256*score4k)
             color_block = (cmap(score)*255)[:,:,:3].astype(np.uint8)
             region_hm = cv2.addWeighted(color_block, alpha, save_region.copy(), 1-alpha, 0, save_region.copy())
@@ -654,8 +633,7 @@ def create_hierarchical_heatmaps_concat_select(region, model256, model4k, output
             color_block256 = (cmap(score256)*255)[:,:,:3].astype(np.uint8)
             region256_hm = cv2.addWeighted(color_block256, alpha, save_region.copy(), 1-alpha, 0, save_region.copy())
             canvas[idx_256+1][0] = Image.fromarray(region256_hm)
-            
-            factorize = lambda data: (data - np.min(data)) / (np.max(data) - np.min(data))
+
             score = (score4k*overlay4k+score256*overlay256)/(overlay4k+overlay256) #factorize(score256*score4k)
             color_block = (cmap(score)*255)[:,:,:3].astype(np.uint8)
             region_hm = cv2.addWeighted(color_block, alpha, save_region.copy(), 1-alpha, 0, save_region.copy())
