@@ -26,24 +26,27 @@ import webdataset as wds
 
 # Torch Dependencies
 import torch
+import torch.nn as nn
 import torch.multiprocessing
 import torchvision
 from torchvision import transforms
 from einops import rearrange, repeat
 torch.multiprocessing.set_sharing_strategy('file_system')
 
+from attention_visualization_utils import get_patch_attention_scores, tensorbatch2im, concat_scores256
 
-def concat_scores256(attns, w_256, h_256, size=(256,256)):
-	r"""
 
-	"""
-	rank = lambda v: rankdata(v)*100/len(v)
-	color_block = [rank(attn.flatten()).reshape(size) for attn in attns]
-	color_hm = np.concatenate([
-		np.concatenate(color_block[i:(i+h_256)], axis=1)
-		for i in range(0,h_256*w_256,h_256)
-	])
-	return color_hm
+#def concat_scores256(attns, w_256, h_256, size=(256,256)):
+#	r"""
+#
+#	"""
+#	rank = lambda v: rankdata(v)*100/len(v)
+#	color_block = [rank(attn.flatten()).reshape(size) for attn in attns]
+#	color_hm = np.concatenate([
+#		np.concatenate(color_block[i:(i+h_256)], axis=1)
+#		for i in range(0,h_256*w_256,h_256)
+#	])
+#	return color_hm
 
 
 def concat_scores4k(attn, size=(4096, 4096)):
@@ -153,7 +156,7 @@ def add_margin(pil_img, top, right, bottom, left, color):
 # 256 x 256 ("Patch") Attention Heatmap Creation
 ################################################
 def create_patch_heatmaps_indiv(patch, model256, output_dir, fname, threshold=0.5,
-                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cuda:0')):
+                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cpu')):
     r"""
     Creates patch heatmaps (saved individually)
     
@@ -214,7 +217,7 @@ def create_patch_heatmaps_indiv(patch, model256, output_dir, fname, threshold=0.
         
         
 def create_patch_heatmaps_concat(patch, model256, output_dir, fname, threshold=0.5,
-                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cuda:0')):
+                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cpu')):
     r"""
     Creates patch heatmaps (concatenated for easy comparison)
     
@@ -291,8 +294,8 @@ def create_patch_heatmaps_concat(patch, model256, output_dir, fname, threshold=0
 # 4096 x 4096 ("Region") Attention Heatmap Creation
 ################################################
 def get_region_attention_scores(region, model256, model4k, scale=1,
-                                device256=torch.device('cuda:0'), 
-                                device4k=torch.device('cuda:1')):
+                                device256=torch.device('cpu'), 
+                                device4k=torch.device('cpu')):
     r"""
     Forward pass in hierarchical model with attention scores saved.
     
@@ -343,7 +346,7 @@ def get_region_attention_scores(region, model256, model4k, scale=1,
 
 def create_hierarchical_heatmaps_indiv(region, model256, model4k, output_dir, fname,
                              offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm'), threshold=None, 
-                             device256=torch.device('cuda:0'), device4k=torch.device('cuda:1')):
+                             device256=torch.device('cpu'), device4k=torch.device('cpu')):
     r"""
     Creates hierarchical heatmaps (Raw H&E + ViT-256 + ViT-4K + Blended Heatmaps saved individually).  
     
@@ -484,7 +487,7 @@ def create_hierarchical_heatmaps_indiv(region, model256, model4k, output_dir, fn
 
 def create_hierarchical_heatmaps_concat(region, model256, model4k, output_dir, fname,
                              offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm'),
-                             device256=torch.device('cuda:0'), device4k=torch.device('cuda:1')):
+                             device256=torch.device('cpu'), device4k=torch.device('cpu')):
     r"""
     Creates hierarchical heatmaps (With Raw H&E + ViT-256 + ViT-4K + Blended Heatmaps concatenated for easy comparison)
     
@@ -564,7 +567,7 @@ def create_hierarchical_heatmaps_concat(region, model256, model4k, output_dir, f
             pad = 100
             canvas = Image.new('RGB', (s*2+pad,)*2, (255,)*3)
             draw = ImageDraw.Draw(canvas)
-            font = ImageFont.truetype("arial.ttf", 50)
+            font = ImageFont.truetype("FreeMono.ttf", 50)
             draw.text((1024*0.5-pad*2, pad//4), "ViT-256 (Head: %d)" % i, (0, 0, 0), font=font)
             canvas = canvas.rotate(90)
             draw = ImageDraw.Draw(canvas)
@@ -580,7 +583,7 @@ def create_hierarchical_heatmaps_concat(region, model256, model4k, output_dir, f
 
 def create_hierarchical_heatmaps_concat_select(region, model256, model4k, output_dir, fname,
                              offset=128, scale=4, alpha=0.5, cmap = plt.get_cmap('coolwarm'),
-                             device256=torch.device('cuda:0'), device4k=torch.device('cuda:1')):
+                             device256=torch.device('cpu'), device4k=torch.device('cpu')):
     r"""
     Creates hierarchical heatmaps (With Raw H&E + ViT-256 + ViT-4K + Blended Heatmaps concatenated for easy comparison), with only select attention heads are used.
     

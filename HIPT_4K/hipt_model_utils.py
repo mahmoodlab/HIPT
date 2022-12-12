@@ -50,7 +50,7 @@ def get_vit256(pretrained_weights, arch='vit_small', device=torch.device('cuda:0
     """
     
     checkpoint_key = 'teacher'
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    device = torch.device("cpu")
     model256 = vits.__dict__[arch](patch_size=16, num_classes=0)
     for p in model256.parameters():
         p.requires_grad = False
@@ -86,7 +86,7 @@ def get_vit4k(pretrained_weights, arch='vit4k_xs', device=torch.device('cuda:1')
     """
     
     checkpoint_key = 'teacher'
-    device = torch.device("cuda:1") if torch.cuda.is_available() else torch.device("cpu")
+    device = torch.device("cpu")
     model4k = vits4k.__dict__[arch](num_classes=0)
     for p in model4k.parameters():
         p.requires_grad = False
