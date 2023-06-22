@@ -34,7 +34,7 @@ sys.path.append('../Hierarchical-Pretraining/')
 import vision_transformer as vits
 import vision_transformer4k as vits4k
 
-def get_vit256(pretrained_weights, arch='vit_small', device=torch.device('cuda:0')):
+def get_vit256(pretrained_weights, arch='vit_small', device=torch.device('cpu')):
     r"""
     Builds ViT-256 Model.
     
@@ -48,7 +48,7 @@ def get_vit256(pretrained_weights, arch='vit_small', device=torch.device('cuda:0
     """
     
     checkpoint_key = 'teacher'
-    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+    device = torch.device("cpu")
     model256 = vits.__dict__[arch](patch_size=16, num_classes=0)
     for p in model256.parameters():
         p.requires_grad = False
@@ -70,7 +70,7 @@ def get_vit256(pretrained_weights, arch='vit_small', device=torch.device('cuda:0
     return model256
 
 
-def get_vit4k(pretrained_weights, arch='vit4k_xs', device=torch.device('cuda:1')):
+def get_vit4k(pretrained_weights, arch='vit4k_xs', device=torch.device('cpu')):
     r"""
     Builds ViT-4K Model.
     
@@ -84,7 +84,7 @@ def get_vit4k(pretrained_weights, arch='vit4k_xs', device=torch.device('cuda:1')
     """
     
     checkpoint_key = 'teacher'
-    device = torch.device("cuda:1") if torch.cuda.is_available() else torch.device("cpu")
+    device = torch.device("cpu")
     model4k = vits4k.__dict__[arch](num_classes=0)
     for p in model4k.parameters():
         p.requires_grad = False
@@ -254,7 +254,7 @@ def get_scores256(attns, size=(256,256)):
     return color_block
 
 
-def get_patch_attention_scores(patch, model256, scale=1, device256=torch.device('cuda:0')):
+def get_patch_attention_scores(patch, model256, scale=1, device256=torch.device('cpu')):
     r"""
     Forward pass in ViT-256 model with attention scores saved.
     
@@ -291,7 +291,7 @@ def get_patch_attention_scores(patch, model256, scale=1, device256=torch.device(
 
 
 def create_patch_heatmaps_indiv(patch, model256, output_dir, fname, threshold=0.5,
-                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cuda:0')):
+                             offset=16, alpha=0.5, cmap=plt.get_cmap('coolwarm'), device256=torch.device('cpu')):
     r"""
     Creates patch heatmaps (saved individually)
     
@@ -422,8 +422,8 @@ def create_patch_heatmaps_concat(patch, model256, output_dir, fname, threshold=0
 
     
 def hipt_forward_pass(region, model256, model4k, scale=1,
-                                device256=torch.device('cuda:0'), 
-                                device4k=torch.device('cuda:1')):
+                                device256=torch.device('cpu'), 
+                                device4k=torch.device('cpu')):
     t = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(
@@ -442,8 +442,8 @@ def hipt_forward_pass(region, model256, model4k, scale=1,
 
 
 def get_region_attention_scores(region, model256, model4k, scale=1,
-                                device256=torch.device('cuda:0'), 
-                                device4k=torch.device('cuda:1')):
+                                device256=torch.device('cpu'), 
+                                device4k=torch.device('cpu')):
     r"""
     Forward pass in hierarchical model with attention scores saved.
     
