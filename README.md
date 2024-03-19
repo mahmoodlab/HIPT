@@ -142,7 +142,7 @@ out = model.forward(x)
 ### Hierarchical Interpretability
 
 <div align="center">
-  <img width="100%" alt="DINO illustration" src="docs/benchmarks.jpg">
+  <img width="100%" alt="DINO illustration" src="docs/HIPT_attention.jpg">
 </div>
 
 For hierarchical interpretability, please see the [following notebook](https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/HIPT_4K%20Inference%20%2B%20Attention%20Visualization.ipynb), which uses the following functions in [./HIPT_4K/hipt_heatmap_utils.py](https://github.com/mahmoodlab/HIPT/blob/master/HIPT_4K/hipt_heatmap_utils.py).
