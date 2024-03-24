@@ -132,7 +132,7 @@ def create_embeddings(embeddings_dir, enc_name, dataset, save_patches=False, spr
         model = resnet50_trunc_baseline(pretrained=True)
         eval_t = eval_transforms(pretrained=True)
     elif 'dino' in enc_name:
-        ckpt_path = os.path.join(assets_dir, enc_name+'.pt')
+        ckpt_path = os.path.join(assets_dir, enc_name+'.pth')
         assert os.path.isfile(ckpt_path)
         model = vit_small(patch_size=16)
         state_dict = torch.load(ckpt_path, map_location="cpu")['teacher']
@@ -143,7 +143,7 @@ def create_embeddings(embeddings_dir, enc_name, dataset, save_patches=False, spr
         #print("Unexpected Keys:", unexpected_keys)
         eval_t = eval_transforms(pretrained=False)
     elif 'simclr' in enc_name:
-        ckpt_path = os.path.join(assets_dir, enc_name+'.pt')
+        ckpt_path = os.path.join(assets_dir, enc_name+'.pth')
         assert os.path.isfile(ckpt_path)
         model = torchvision_ssl_encoder('resnet50', pretrained=True)
         missing_keys, unexpected_keys = model.load_state_dict(torch.load(ckpt_path), strict=False)
